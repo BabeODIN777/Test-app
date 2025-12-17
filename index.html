@@ -657,6 +657,9 @@ function finishSave(item) {
                 <div class="inventory-item">
                     <div class="item-top">
                         <div class="item-left">
+                        <div class="item-right">
+    ${item.image ? `<img src="${item.image}" class="item-image">` : ''}
+                   </div>
                             <div class="item-header">
                             <div class="item-title">
                             <div class="item-name">${item.partName}</div>
