@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>កម្មវិធីគ្រប់គ្រងគ្រឿងឡាន</title>
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{
@@ -15,30 +16,37 @@ body{
 .container{max-width:900px;margin:auto}
 .header{text-align:center;margin-bottom:16px}
 .header h1{color:#4ade80}
+
 .tabs{display:flex;gap:8px;margin-bottom:12px}
 .tab{
     flex:1;padding:12px;border:none;border-radius:10px;
     background:rgba(255,255,255,.15);color:#fff;font-weight:600
 }
 .tab.active{background:#4ade80;color:#0f2027}
+
 .tab-content{display:none}
 .tab-content.active{display:block}
+
 .form-card,.inventory-item,.stat-card{
     background:rgba(255,255,255,.12);
     border-radius:14px;padding:16px;margin-bottom:12px
 }
+
 input{
     width:100%;padding:12px;border-radius:10px;
     border:1px solid rgba(255,255,255,.3);
     background:rgba(255,255,255,.2);color:#fff
 }
 label{color:#4ade80;font-weight:600;font-size:14px}
+
 .btn{
     width:100%;padding:14px;border:none;border-radius:10px;
     background:#4ade80;color:#0f2027;font-weight:bold
 }
+
 .search-box{margin-bottom:12px}
 .inventory-list{display:flex;flex-direction:column;gap:12px}
+
 /* Layout */
 .item-top{display:flex;gap:14px}
 .item-left{flex:1}
@@ -50,39 +58,41 @@ label{color:#4ade80;font-weight:600;font-size:14px}
 .detail-chip{padding:4px 10px;border-radius:20px;font-size:13px;font-weight:600;background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.4);color:#4ade80}
 .detail-chip.year{background:rgba(96,165,250,.15);border-color:rgba(96,165,250,.4);color:#60a5fa}
 .detail-company{font-size:13px;opacity:.85}
+
 /* Price */
 .price-section{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;padding:10px;background:rgba(0,0,0,.25);border-radius:10px}
 .price-value{font-weight:bold}
 .buy{color:#fbbf24}
 .sell{color:#4ade80}
 .profit{color:#60a5fa}
+
 .actions{display:flex;gap:8px;margin-top:10px}
 .actions button{flex:1;padding:10px;border:none;border-radius:8px}
 .edit{background:#60a5fa;color:#fff}
 .delete{background:#ef4444;color:#fff}
+
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .stat-value{font-size:24px;color:#4ade80;font-weight:bold}
+
 /* Modal */
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);align-items:center;justify-content:center;padding:20px;z-index:100}
 .modal.active{display:flex}
 .modal-content{background:#203a43;border-radius:16px;padding:20px;width:100%;max-width:500px}
 .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
 .close-btn{background:none;border:none;color:#fff;font-size:28px;cursor:pointer}
-.modal-buttons{display:flex;gap:12px;margin-top:20px}
-.modal-buttons button{flex:1;padding:12px;border:none;border-radius:10px;font-weight:bold}
-.modal-btn-add{background:#4ade80;color:#0f2027}
-.modal-btn-edit{background:#60a5fa;color:#fff}
-.modal-btn-cancel{background:#ef4444;color:#fff}
 </style>
 </head>
+
 <body>
 <div class="container">
     <div class="header"><h1>🚗 កម្មវិធីគ្រប់គ្រងគ្រឿងឡាន</h1></div>
+
     <div class="tabs">
         <button class="tab active" onclick="switchTab('stock')">📦 ស្តុក</button>
         <button class="tab" onclick="switchTab('add')">➕ បន្ថែម</button>
         <button class="tab" onclick="switchTab('stats')">📊 ស្ថិតិ</button>
     </div>
+
     <!-- STOCK -->
     <div id="stock-tab" class="tab-content active">
         <div class="search-box">
@@ -90,6 +100,7 @@ label{color:#4ade80;font-weight:600;font-size:14px}
         </div>
         <div id="inventoryList" class="inventory-list"></div>
     </div>
+
     <!-- ADD -->
     <div id="add-tab" class="tab-content">
         <div class="form-card">
@@ -106,6 +117,7 @@ label{color:#4ade80;font-weight:600;font-size:14px}
             </form>
         </div>
     </div>
+
     <!-- STATS -->
     <div id="stats-tab" class="tab-content">
         <div class="stats-grid">
@@ -119,7 +131,7 @@ label{color:#4ade80;font-weight:600;font-size:14px}
     </div>
 </div>
 
-<!-- Edit Modal (existing) -->
+<!-- Edit Modal -->
 <div id="editModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -140,26 +152,9 @@ label{color:#4ade80;font-weight:600;font-size:14px}
     </div>
 </div>
 
-<!-- Duplicate Code Warning Modal (NEW) -->
-<div id="duplicateModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>⚠️ រកឃើញកូដស្ទួន</h2>
-            <button class="close-btn" onclick="closeDuplicateModal()">×</button>
-        </div>
-        <p>កូដ "<span id="duplicateCode"></span>" មានរួចហើយនៅក្នុងប្រព័ន្ធ។<br>តើអ្នកចង់៖</p>
-        <div class="modal-buttons">
-            <button class="modal-btn-add" onclick="addAsNew()">បន្ថែមជាថ្មី</button>
-            <button class="modal-btn-edit" onclick="editExisting()">កែប្រែចាស់</button>
-            <button class="modal-btn-cancel" onclick="closeDuplicateModal()">បោះបង់</button>
-        </div>
-    </div>
-</div>
-
 <script>
 let inventory = JSON.parse(localStorage.getItem("autoPartsInventory")) || [];
 let currentSearch = [];
-let pendingItem = null; // ទុក item ដែលកំពុងរង់ចាំបញ្ចូល (បន្ទាប់ពីបិទ modal)
 
 function switchTab(name){
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -172,106 +167,39 @@ function switchTab(name){
 
 function saveItem(e){
     e.preventDefault();
+    const item = {
+        id: Date.now(),
+        company: document.getElementById('company').value,
+        productCode: document.getElementById('productCode').value,
+        partName: document.getElementById('partName').value,
+        carModel: document.getElementById('carModel').value,
+        modelYear: document.getElementById('modelYear').value,
+        buyPrice: +document.getElementById('buyPrice').value,
+        sellPrice: +document.getElementById('sellPrice').value,
+        image: null
+    };
 
-    const productCode = document.getElementById('productCode').value.trim();
-
-    // ពិនិត្យមើលថាមានកូដនេះរួចឬនៅ
-    const existingItem = inventory.find(i => i.productCode === productCode);
-
-    if(existingItem){
-        // បង្ហាញ modal សួរជម្រើស
-        document.getElementById('duplicateCode').textContent = productCode;
-        document.getElementById('duplicateModal').classList.add('active');
-
-        // រក្សាទិន្នន័យបណ្តោះអាសន្នសម្រាប់ប្រើក្រោយ
-        pendingItem = {
-            company: document.getElementById('company').value,
-            productCode: productCode,
-            partName: document.getElementById('partName').value,
-            carModel: document.getElementById('carModel').value,
-            modelYear: document.getElementById('modelYear').value,
-            buyPrice: +document.getElementById('buyPrice').value,
-            sellPrice: +document.getElementById('sellPrice').value,
-            image: null
-        };
-
-        const file = document.getElementById('productImage').files[0];
-        if(file){
-            const reader = new FileReader();
-            reader.onload = () => { pendingItem.image = reader.result; };
-            reader.readAsDataURL(file);
-        }
-
-        return; // ឈប់នៅទីនេះ រង់ចាំជម្រើសពី modal
-    }
-
-    // បើគ្មានកូដស្ទួន → បន្ថែមធម្មតា
-    addNewItem();
-}
-
-function addNewItem(){
-    if(!pendingItem) return;
-
-    pendingItem.id = Date.now();
     const file = document.getElementById('productImage').files[0];
-    if(file && !pendingItem.image){
+    if(file){
         const reader = new FileReader();
-        reader.onload = () => {
-            pendingItem.image = reader.result;
-            finalizeAdd();
-        };
+        reader.onload = () => { item.image = reader.result; addToInventory(item); };
         reader.readAsDataURL(file);
     } else {
-        finalizeAdd();
+        addToInventory(item);
     }
 
-    function finalizeAdd(){
-        inventory.push(pendingItem);
+    function addToInventory(it){
+        inventory.push(it);
         localStorage.setItem("autoPartsInventory", JSON.stringify(inventory));
-        document.querySelector('#add-tab form').reset();
-        pendingItem = null;
-        closeDuplicateModal();
+        e.target.reset();
         switchTab("stock");
     }
 }
 
-function addAsNew(){
-    // បន្ថែមជាធម្មតា ទោះបីមានកូដដូចគ្នាក៏ដោយ
-    addNewItem();
-}
-
-function editExisting(){
-    const productCode = document.getElementById('productCode').value.trim();
-    const existingItem = inventory.find(i => i.productCode === productCode);
-
-    if(existingItem){
-        // បំពេញទិន្នន័យចាស់មកក្នុង form ដើម្បីកែ
-        document.getElementById('company').value = existingItem.company;
-        document.getElementById('productCode').value = existingItem.productCode;
-        document.getElementById('partName').value = existingItem.partName;
-        document.getElementById('carModel').value = existingItem.carModel;
-        document.getElementById('modelYear').value = existingItem.modelYear;
-        document.getElementById('buyPrice').value = existingItem.buyPrice;
-        document.getElementById('sellPrice').value = existingItem.sellPrice;
-
-        // បើមានរូបភាពចាស់ អាចបង្ហាញ (តែ file input មិនអាច set value ដោយសុវត្ថិភាព)
-        // អ្នកអាចបន្ថែម preview បន្ថែមបើចង់
-
-        alert("ទិន្នន័យចាស់ត្រូវបានបំពេញមកហើយ។ សូមកែប្រែ រួចចុច 'រក្សាទុក' ម្តងទៀត។");
-    }
-    closeDuplicateModal();
-}
-
-function closeDuplicateModal(){
-    document.getElementById('duplicateModal').classList.remove('active');
-    pendingItem = null;
-}
-
-// មុខងារដែលនៅសល់ដដែល
 function renderInventory(){
-    let list = inventory.filter(i =>
-        currentSearch.length === 0 ||
-        currentSearch.some(term =>
+    let list = inventory.filter(i => 
+        currentSearch.length === 0 || 
+        currentSearch.some(term => 
             i.partName.toLowerCase().includes(term) ||
             i.carModel.toLowerCase().includes(term) ||
             i.modelYear.toLowerCase().includes(term) ||
@@ -279,6 +207,7 @@ function renderInventory(){
             i.productCode.toLowerCase().includes(term)
         )
     );
+
     inventoryList.innerHTML = list.map(i => {
         let p = i.sellPrice - i.buyPrice;
         return `
@@ -319,6 +248,7 @@ function searchItems(){
 function openEdit(id){
     const item = inventory.find(i => i.id === id);
     if(!item) return;
+
     document.getElementById('editId').value = item.id;
     document.getElementById('editCompany').value = item.company;
     document.getElementById('editProductCode').value = item.productCode;
@@ -327,6 +257,7 @@ function openEdit(id){
     document.getElementById('editModelYear').value = item.modelYear;
     document.getElementById('editBuyPrice').value = item.buyPrice;
     document.getElementById('editSellPrice').value = item.sellPrice;
+
     document.getElementById('editModal').classList.add('active');
 }
 
@@ -335,6 +266,7 @@ function updateItem(e){
     const id = parseInt(document.getElementById('editId').value);
     const index = inventory.findIndex(i => i.id === id);
     if(index === -1) return;
+
     inventory[index] = {
         ...inventory[index],
         company: document.getElementById('editCompany').value,
@@ -345,6 +277,7 @@ function updateItem(e){
         buyPrice: +document.getElementById('editBuyPrice').value,
         sellPrice: +document.getElementById('editSellPrice').value
     };
+
     localStorage.setItem("autoPartsInventory", JSON.stringify(inventory));
     closeModal();
     renderInventory();
