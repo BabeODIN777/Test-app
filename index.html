@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>កម្មវិធីគ្រប់គ្រងគ្រឿងបំណែកឡាន</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+```
+    body {
+        font-family: 'Noto Sans Khmer', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        min-height: 100vh;
+        padding: 20px;
+        color: #fff;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .header h1 {
+        font-size: 24px;
+        margin-bottom: 10px;
+        color: #4ade80;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        background: rgba(255,255,255,0.1);
+        padding: 5px;
+        border-radius: 12px;
+    }
+
+    .tab {
+        flex: 1;
+        padding: 12px;
+        background: transparent;
+        border: none;
+        color: #fff;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.3s;
+    }
+
+    .tab.active {
+        background: #4ade80;
+        color: #0f2027;
+        font-weight: bold;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .form-card {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #4ade80;
+        font-weight: 500;
+    }
+
+    input, select, textarea {
+        width: 100%;
+        padding: 12px;
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.3);
+        border-radius: 8px;
+        color: #fff;
+        font-size: 16px;
+        font-family: 'Noto Sans Khmer', sans-serif;
+    }
+
+    input::placeholder {
+        color: rgba(255,255,255,0.5);
+    }
+
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: #4ade80;
+        background: rgba(255,255,255,0.2);
+    }
+
+    .btn {
+        width: 100%;
+        padding: 14px;
+        background: #4ade80;
+        color: #0f2027;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn:hover {
+        background: #22c55e;
+        transform: translateY(-2px);
+    }
+
+    .inventory-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .inventory-item {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid rgba(255,255,255,0.2);
+        position: relative;
+    }
+
+    .item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 12px;
+    }
+
+    .item-title {
+        flex: 1;
+    }
+
+    .item-name {
+        font-size: 18px;
+        font-weight: bold;
+        color: #4ade80;
+        margin-bottom: 4px;
+    }
+
+    .item-code {
+        font-size: 14px;
+        color: rgba(255,255,255,0.7);
+    }
+
+    .item-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .detail-item {
+        font-size: 14px;
+    }
+
+    .detail-label {
+        color: rgba(255,255,255,0.6);
+        font-size: 12px;
+    }
+
+    .detail-value {
+        color: #fff;
+        font-weight: 500;
+    }
+
+    .price-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        background: rgba(0,0,0,0.2);
+        padding: 12px;
+        border-radius: 8px;
+        margin-top: 12px;
+    }
+
+    .price-item {
+        text-align: center;
+    }
+
+    .price-label {
+        font-size: 11px;
+        color: rgba(255,255,255,0.6);
+        margin-bottom: 4px;
+    }
+
+    .price-value {
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .buy-price {
+        color: #fbbf24;
+    }
+
+    .sell-price {
+        color: #4ade80;
+    }
+
+    .profit {
+        color: #60a5fa;
+    }
+
+    .item-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .btn-small {
+        flex: 1;
+        padding: 8px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-edit {
+        background: #60a5fa;
+        color: #fff;
+    }
+
+    .btn-delete {
+        background: #ef4444;
+        color: #fff;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: rgba(255,255,255,0.5);
+    }
+
+    .empty-state svg {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+
+    .search-box {
+        margin-bottom: 20px;
+    }
+
+    .search-box input {
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid rgba(255,255,255,0.2);
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 28px;
+        font-weight: bold;
+        color: #4ade80;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: rgba(255,255,255,0.7);
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: #1a2f3a;
+        border-radius: 16px;
+        padding: 25px;
+        max-width: 500px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .modal-title {
+        font-size: 20px;
+        color: #4ade80;
+    }
+
+    .btn-close {
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+    }
+</style>
+```
+
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 កម្មវិធីគ្រប់គ្រងគ្រឿងបំណែកឡាន</h1>
+        </div>
+
+```
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('stock')">📦 ស្តុក</button>
+        <button class="tab" onclick="switchTab('add')">➕ បន្ថែម</button>
+        <button class="tab" onclick="switchTab('stats')">📊 ស្ថិតិ</button>
+    </div>
+
+    <!-- Stock Tab -->
+    <div id="stock-tab" class="tab-content active">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 ស្វែងរកតាមកូដ ឈ្មោះ ឬម៉ូដែលឡាន..." oninput="searchItems()">
+        </div>
+        <div id="inventoryList" class="inventory-list"></div>
+    </div>
+
+    <!-- Add Tab -->
+    <div id="add-tab" class="tab-content">
+        <div class="form-card">
+            <form id="inventoryForm" onsubmit="saveItem(event)">
+                <input type="hidden" id="editId">
+                
+                <div class="form-group">
+                    <label>ម៉ាកក្រុមហ៊ុន (Company Name) *</label>
+                    <input type="text" id="company" required placeholder="ឧ. Toyota, Honda, Nissan">
+                </div>
+
+                <div class="form-group">
+                    <label>កូដទំនិញ (Product Code) *</label>
+                    <input type="text" id="productCode" required placeholder="ឧ. SB-451, BK-892">
+                </div>
+
+                <div class="form-group">
+                    <label>ឈ្មោះទំនិញ (Part Name) *</label>
+                    <input type="text" id="partName" required placeholder="ឧ. Shock Absorber, Stabilizer Link">
+                </div>
+
+                <div class="form-group">
+                    <label>ប្រភេទឡាន (Car Model) *</label>
+                    <input type="text" id="carModel" required placeholder="ឧ. Toyota Tacoma, Honda Civic">
+                </div>
+
+                <div class="form-group">
+                    <label>ឆ្នាំម៉ូដែល (Model Year) *</label>
+                    <input type="text" id="modelYear" required placeholder="ឧ. 2002, 2004, 2015-2020">
+                </div>
+
+                <div class="form-group">
+                    <label>តម្លៃទិញចូល (Buy-in Price) *</label>
+                    <input type="number" id="buyPrice" required step="0.01" placeholder="0.00">
+                </div>
+
+                <div class="form-group">
+                    <label>តម្លៃលក់ចេញ (Sell-out Price) *</label>
+                    <input type="number" id="sellPrice" required step="0.01" placeholder="0.00">
+                </div>
+
+                <button type="submit" class="btn" id="submitBtn">💾 រក្សាទុក</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stats Tab -->
+    <div id="stats-tab" class="tab-content">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalItems">0</div>
+                <div class="stat-label">ទំនិញសរុប</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalValue">$0</div>
+                <div class="stat-label">តម្លៃស្តុកសរុប</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgProfit">0%</div>
+                <div class="stat-label">ប្រាក់ចំណេញមធ្យម</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalProfit">$0</div>
+                <div class="stat-label">ប្រាក់ចំណេញសរុប</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">✏️ កែប្រែទំនិញ</h2>
+            <button class="btn-close" onclick="closeModal()">&times;</button>
+        </div>
+        <form id="editForm" onsubmit="updateItem(event)">
+            <input type="hidden" id="editItemId">
+            
+            <div class="form-group">
+                <label>ម៉ាកក្រុមហ៊ុន</label>
+                <input type="text" id="editCompany" required>
+            </div>
+
+            <div class="form-group">
+                <label>កូដទំនិញ</label>
+                <input type="text" id="editProductCode" required>
+            </div>
+
+            <div class="form-group">
+                <label>ឈ្មោះទំនិញ</label>
+                <input type="text" id="editPartName" required>
+            </div>
+
+            <div class="form-group">
+                <label>ប្រភេទឡាន</label>
+                <input type="text" id="editCarModel" required>
+            </div>
+
+            <div class="form-group">
+                <label>ឆ្នាំម៉ូដែល</label>
+                <input type="text" id="editModelYear" required>
+            </div>
+
+            <div class="form-group">
+                <label>តម្លៃទិញចូល</label>
+                <input type="number" id="editBuyPrice" required step="0.01">
+            </div>
+
+            <div class="form-group">
+                <label>តម្លៃលក់ចេញ</label>
+                <input type="number" id="editSellPrice" required step="0.01">
+            </div>
+
+            <button type="submit" class="btn">💾 រក្សាទុកការផ្លាស់ប្តូរ</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    let inventory = JSON.parse(localStorage.getItem('autoPartsInventory')) || [];
+    let currentSearch = '';
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        
+        event.target.classList.add('active');
+        document.getElementById(tabName + '-tab').classList.add('active');
+        
+        if (tabName === 'stock') {
+            renderInventory();
+        } else if (tabName === 'stats') {
+            updateStats();
+        }
+    }
+
+    function saveItem(e) {
+        e.preventDefault();
+        
+        const item = {
+            id: Date.now(),
+            company: document.getElementById('company').value,
+            productCode: document.getElementById('productCode').value,
+            partName: document.getElementById('partName').value,
+            carModel: document.getElementById('carModel').value,
+            modelYear: document.getElementById('modelYear').value,
+            buyPrice: parseFloat(document.getElementById('buyPrice').value),
+            sellPrice: parseFloat(document.getElementById('sellPrice').value)
+        };
+        
+        inventory.push(item);
+        localStorage.setItem('autoPartsInventory', JSON.stringify(inventory));
+        
+        document.getElementById('inventoryForm').reset();
+        switchTab('stock');
+        renderInventory();
+        
+        alert('✅ រក្សាទុកបានជោគជ័យ!');
+    }
+
+    function renderInventory() {
+        const list = document.getElementById('inventoryList');
+        const items = currentSearch ? 
+            inventory.filter(item => 
+                item.productCode.toLowerCase().includes(currentSearch.toLowerCase()) ||
+                item.partName.toLowerCase().includes(currentSearch.toLowerCase()) ||
+                item.carModel.toLowerCase().includes(currentSearch.toLowerCase()) ||
+                item.company.toLowerCase().includes(currentSearch.toLowerCase())
+            ) : inventory;
+        
+        if (items.length === 0) {
+            list.innerHTML = `
+                <div class="empty-state">
+                    <svg fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                    </svg>
+                    <p>មិនមានទំនិញក្នុងស្តុក</p>
+                    <p style="font-size: 14px; margin-top: 10px;">ចុចលើ "បន្ថែម" ដើម្បីបន្ថែមទំនិញថ្មី</p>
+                </div>
+            `;
+            return;
+        }
+        
+        list.innerHTML = items.map(item => {
+            const profit = item.sellPrice - item.buyPrice;
+            const profitPercent = ((profit / item.buyPrice) * 100).toFixed(1);
+            
+            return `
+                <div class="inventory-item">
+                    <div class="item-header">
+                        <div class="item-title">
+                            <div class="item-name">${item.partName}</div>
+                            <div class="item-code">${item.productCode}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="item-details">
+                        <div class="detail-item">
+                            <div class="detail-label">ក្រុមហ៊ុន</div>
+                            <div class="detail-value">${item.company}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">ម៉ូដែលឡាន</div>
+                            <div class="detail-value">${item.carModel}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">ឆ្នាំម៉ូដែល</div>
+                            <div class="detail-value">${item.modelYear}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="price-section">
+                        <div class="price-item">
+                            <div class="price-label">តម្លៃទិញ</div>
+                            <div class="price-value buy-price">$${item.buyPrice.toFixed(2)}</div>
+                        </div>
+                        <div class="price-item">
+                            <div class="price-label">តម្លៃលក់</div>
+                            <div class="price-value sell-price">$${item.sellPrice.toFixed(2)}</div>
+                        </div>
+                        <div class="price-item">
+                            <div class="price-label">ចំណេញ</div>
+                            <div class="price-value profit">$${profit.toFixed(2)}<br>(${profitPercent}%)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="item-actions">
+                        <button class="btn-small btn-edit" onclick="editItem(${item.id})">✏️ កែប្រែ</button>
+                        <button class="btn-small btn-delete" onclick="deleteItem(${item.id})">🗑️ លុប</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function searchItems() {
+        currentSearch = document.getElementById('searchInput').value;
+        renderInventory();
+    }
+
+    function editItem(id) {
+        const item = inventory.find(i => i.id === id);
+        if (!item) return;
+        
+        document.getElementById('editItemId').value = item.id;
+        document.getElementById('editCompany').value = item.company;
+        document.getElementById('editProductCode').value = item.productCode;
+        document.getElementById('editPartName').value = item.partName;
+        document.getElementById('editCarModel').value = item.carModel;
+        document.getElementById('editModelYear').value = item.modelYear;
+        document.getElementById('editBuyPrice').value = item.buyPrice;
+        document.getElementById('editSellPrice').value = item.sellPrice;
+        
+        document.getElementById('editModal').classList.add('active');
+    }
+
+    function updateItem(e) {
+        e.preventDefault();
+        
+        const id = parseInt(document.getElementById('editItemId').value);
+        const index = inventory.findIndex(i => i.id === id);
+        
+        if (index !== -1) {
+            inventory[index] = {
+                id: id,
+                company: document.getElementById('editCompany').value,
+                productCode: document.getElementById('editProductCode').value,
+                partName: document.getElementById('editPartName').value,
+                carModel: document.getElementById('editCarModel').value,
+                modelYear: document.getElementById('editModelYear').value,
+                buyPrice: parseFloat(document.getElementById('editBuyPrice').value),
+                sellPrice: parseFloat(document.getElementById('editSellPrice').value)
+            };
+            
+            localStorage.setItem('autoPartsInventory', JSON.stringify(inventory));
+            closeModal();
+            renderInventory();
+            alert('✅ កែប្រែបានជោគជ័យ!');
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('editModal').classList.remove('active');
+    }
+
+    function deleteItem(id) {
+        if (confirm('តើអ្នកប្រាកដថាចង់លុបទំនិញនេះ?')) {
+            inventory = inventory.filter(i => i.id !== id);
+            localStorage.setItem('autoPartsInventory', JSON.stringify(inventory));
+            renderInventory();
+            alert('✅ លុបបានជោគជ័យ!');
+        }
+    }
+
+    function updateStats() {
+        const totalItems = inventory.length;
+        const totalValue = inventory.reduce((sum, item) => sum + item.buyPrice, 0);
+        const totalProfit = inventory.reduce((sum, item) => sum + (item.sellPrice - item.buyPrice), 0);
+        const avgProfit = totalValue > 0 ? ((totalProfit / totalValue) * 100) : 0;
+        
+        document.getElementById('totalItems').textContent = totalItems;
+        document.getElementById('totalValue').textContent = '$' + totalValue.toFixed(2);
+        document.getElementById('avgProfit').textContent = avgProfit.toFixed(1) + '%';
+        document.getElementById('totalProfit').textContent = '$' + totalProfit.toFixed(2);
+    }
+
+    // Initialize
+    renderInventory();
+</script>
+```
+
+</body>
+</html>
