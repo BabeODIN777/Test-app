@@ -601,15 +601,30 @@
             image: null
         };
         
-        inventory.push(item);
-        localStorage.setItem('autoPartsInventory', JSON.stringify(inventory));
-        
-        document.getElementById('inventoryForm').reset();
-        switchTab('stock');
-        renderInventory();
-        
-        alert('✅ រក្សាទុកបានជោគជ័យ!');
-    }
+        const imageInput = document.getElementById('productImage');
+
+if (imageInput.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function () {
+        item.image = reader.result;
+        finishSave(item);
+    };
+    reader.readAsDataURL(imageInput.files[0]);
+    return;
+}
+
+finishSave(item);
+
+function finishSave(item) {
+    inventory.push(item);
+    localStorage.setItem('autoPartsInventory', JSON.stringify(inventory));
+
+    document.getElementById('inventoryForm').reset();
+    switchTab('stock');
+    renderInventory();
+
+    alert('✅ រក្សាទុកបានជោគជ័យ!');
+}
 
     function renderInventory() {
         const list = document.getElementById('inventoryList');
