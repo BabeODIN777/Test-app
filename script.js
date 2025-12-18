@@ -208,3 +208,19 @@ function updateStats(){
 // Init
 renderInventory();
 updateStats();
+// Dark Mode Toggle
+function toggleDarkMode() {
+    const isDark = document.getElementById('darkModeToggle').checked;
+    document.body.classList.toggle('light-mode', !isDark); // Dark by default, toggle to light
+    localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+}
+
+// Init theme from localStorage
+const savedDarkMode = localStorage.getItem('darkMode');
+if (savedDarkMode === 'enabled') {
+    document.getElementById('darkModeToggle').checked = true;
+    document.body.classList.remove('light-mode');
+} else {
+    document.getElementById('darkModeToggle').checked = false;
+    document.body.classList.add('light-mode');
+}
