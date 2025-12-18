@@ -4,131 +4,128 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>កម្មវិធីគ្រប់គ្រងគ្រឿងឡាន</title>
-    <!-- Bootstrap 5 CDN for responsive design -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Font for proper Khmer rendering -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header class="header text-center">
-        <h1 class="display-5 fw-bold">កម្មវិធីគ្រប់គ្រងគ្រឿងឡាន 🚗</h1>
-    </header>
-
-    <div class="container mt-4">
-        <!-- Dashboard Statistics -->
-        <div class="row g-4 mb-5">
-            <div class="col-6 col-md-3">
-                <div class="card stat-card text-center p-4 bg-primary text-white">
+    <div class="container">
+        <div class="header">
+            <h1>កម្មវិធីគ្រប់គ្រងគ្រឿងឡាន 🚗</h1>
+        </div>
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('add')">បន្ថែមគ្រឿង</button>
+            <button class="tab" onclick="switchTab('stock')">ស្តុកគ្រឿង</button>
+            <button class="tab" onclick="switchTab('stats')">ស្ថិតិ</button>
+        </div>
+        <div id="add-tab" class="tab-content active">
+            <div class="form-card">
+                <form onsubmit="saveItem(event)">
+                    <label for="company">ក្រុមហ៊ុន</label>
+                    <input id="company" required>
+                    <label for="productCode">កូដគ្រឿង</label>
+                    <input id="productCode" required>
+                    <label for="partName">ឈ្មោះគ្រឿង</label>
+                    <input id="partName" required>
+                    <label for="carModel">ប្រភេទ</label>
+                    <input id="carModel" required>
+                    <label for="modelYear">ឆ្នាំម៉ូដែល</label>
+                    <input id="modelYear" required>
+                    <label for="buyPrice">តម្លៃទិញ ($)</label>
+                    <input id="buyPrice" type="number" step="0.01" required>
+                    <label for="sellPrice">តម្លៃលក់ ($)</label>
+                    <input id="sellPrice" type="number" step="0.01" required>
+                    <label for="productImage">រូបភាពគ្រឿង</label>
+                    <input id="productImage" type="file" accept="image/*">
+                    <button type="submit" class="btn">រក្សាទុកគ្រឿង</button>
+                </form>
+            </div>
+        </div>
+        <div id="stock-tab" class="tab-content">
+            <div class="search-box">
+                <input id="searchInput" oninput="searchItems()" placeholder="ស្វែងរកដោយឈ្មោះ ប្រភេទ កូដ...">
+            </div>
+            <a href="#" onclick="exportToCSV()">នាំចេញជា CSV 📄</a>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ល.រ</th>
+                        <th>ឈ្មោះគ្រឿង</th>
+                        <th>ប្រភេទ</th>
+                        <th>ម៉ូដែលឡាន</th>
+                        <th>ឆ្នាំម៉ូដែល</th>
+                        <th>តម្លៃទិញ ($)</th>
+                        <th>តម្លៃលក់ ($)</th>
+                        <th>តម្លៃសរុប ($)</th>
+                        <th>សកម្មភាព</th>
+                    </tr>
+                </thead>
+                <tbody id="stockTableBody"></tbody>
+            </table>
+        </div>
+        <div id="stats-tab" class="tab-content">
+            <div class="stats-grid">
+                <div class="stat-card">
                     <h5>ទំនិញសរុប</h5>
-                    <h2 id="totalItems">0</h2>
+                    <div class="stat-value" id="totalItems">0</div>
                 </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="card stat-card text-center p-4 bg-success text-white">
+                <div class="stat-card">
                     <h5>តម្លៃសរុប ($)</h5>
-                    <h2 id="totalValue">0.00</h2>
+                    <div class="stat-value" id="totalValue">0.00</div>
                 </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="card stat-card text-center p-4 bg-info text-white">
-                    <h5>ប្រាក់ចំណេញសរុប ($)</h2>
-                    <h2 id="totalProfit">0.00</h2>
+                <div class="stat-card">
+                    <h5>ប្រាក់ចំណេញសរុប ($)</h5>
+                    <div class="stat-value" id="totalProfit">0.00</div>
                 </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="card stat-card text-center p-4 bg-warning text-dark">
+                <div class="stat-card">
                     <h5>គ្រឿងស្តុកទាប</h5>
-                    <h2 id="lowStockCount">0</h2>
+                    <div class="stat-value" id="lowStock">0</div>
                 </div>
             </div>
         </div>
-
-        <!-- Navigation Tabs -->
-        <ul class="nav nav-tabs mb-4" id="appTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#stockTab" aria-selected="true">ស្តុកទំនិញ</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#addTab">បន្ថែម / កែគ្រឿង</button>
-            </li>
-        </ul>
-
-        <div class="tab-content">
-            <!-- Stock List Tab -->
-            <div class="tab-pane fade show active" id="stockTab">
-                <div class="d-flex justify-content-between mb-3">
-                    <input type="text" id="searchInput" class="form-control w-50" placeholder="ស្វែងរកឈ្មោះគ្រឿង..." aria-label="ស្វែងរក">
-                    <button class="btn btn-success btn-export" onclick="exportToCSV()">នាំចេញជាក់សម្ត៉ៃ CSV 📄</button>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover table-bordered align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th onclick="sortTable(0)">ល.រ</th>
-                                <th onclick="sortTable(1)">ឈ្មោះគ្រឿង</th>
-                                <th onclick="sortTable(2)">ប្រភេទ</th>
-                                <th onclick="sortTable(3)">ម៉ូដែលឡាន</th>
-                                <th onclick="sortTable(4)">ឆ្នាំម៉ូដែល</th>
-                                <th>តម្លៃទិញ</th>
-                                <th>តម្លៃលក់</th>
-                                <th>សកម្មភាព</th>
-                            </tr>
-                        </thead>
-                        <tbody id="stockTableBody"></tbody>
-                    </table>
-                </div>
+        <label class="theme-toggle">
+            <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+            <span>របៀបងងឹត</span>
+        </label>
+    </div>
+    <div id="duplicateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>កូដគ្រឿង <span id="duplicateCode"></span> មានរួចហើយ!</h2>
+                <button class="close-btn" onclick="closeDuplicateModal()">&times;</button>
             </div>
-
-            <!-- Add/Edit Item Tab -->
-            <div class="tab-pane fade" id="addTab">
-                <div class="card p-4">
-                    <form onsubmit="saveItem(event)">
-                        <input type="hidden" id="editId">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label">ក្រុមហ៊ុន <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="company" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">កូដ <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="productCode" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">ឈ្មោះគ្រឿង <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="partName" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">ម៉ូដែលឡាន</label>
-                                <input type="text" class="form-control" id="carModel" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">ឆ្នាំម៉ូដែល</label>
-                                <input type="number" class="form-control" id="modelYear" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">រូបភាព</label>
-                                <input type="file" class="form-control" id="productImage" accept="image/*">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">តម្លៃទិញ ($)</label>
-                                <input type="number" class="form-control" id="buyPrice" required step="0.01">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">តម្លៃលក់ ($)</label>
-                                <input type="number" class="form-control" id="sellPrice" required step="0.01">
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary mt-4">រក្សាទុកគ្រឿង</button>
-                        <button type="reset" class="btn btn-secondary mt-4 ms-3" onclick="resetForm()">សម្អាត</button>
-                    </form>
-                </div>
+            <p>តើអ្នកចង់បន្ថែមជាទំនិញថ្មី ឬកែប្រែទំនិញចាស់?</p>
+            <div class="modal-buttons">
+                <button class="modal-btn-add" onclick="addAsNew()">បន្ថែមថ្មី</button>
+                <button class="modal-btn-edit" onclick="editExisting()">កែប្រែចាស់</button>
+                <button class="modal-btn-cancel" onclick="closeDuplicateModal()">បោះបង់</button>
             </div>
         </div>
     </div>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>កែប្រែគ្រឿង</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form onsubmit="updateItem(event)">
+                <input type="hidden" id="editId">
+                <label for="editCompany">ក្រុមហ៊ុន</label>
+                <input id="editCompany" required>
+                <label for="editProductCode">កូដគ្រឿង</label>
+                <input id="editProductCode" required>
+                <label for="editPartName">ឈ្មោះគ្រឿង</label>
+                <input id="editPartName" required>
+                <label for="editCarModel">ប្រភេទ</label>
+                <input id="editCarModel" required>
+                <label for="editModelYear">ឆ្នាំម៉ូដែល</label>
+                <input id="editModelYear" required>
+                <label for="editBuyPrice">តម្លៃទិញ ($)</label>
+                <input id="editBuyPrice" type="number" step="0.01" required>
+                <label for="editSellPrice">តម្លៃលក់ ($)</label>
+                <input id="editSellPrice" type="number" step="0.01" required>
+                <button type="submit" class="btn">រក្សាទុក</button>
+            </form>
+        </div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
