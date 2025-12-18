@@ -1,116 +1,61 @@
-let inventory = JSON.parse(localStorage.getItem("autoPartsInventory")) || [];
+let inventory = JSON.parse(localStorage.getItem('inventory')) || [];
+let nextId = inventory.length ? Math.max(...inventory.map(i => i.id)) + 1 : 1;
+let duplicateItem = null;
+let addAsNewFlag = false;
 let currentSearch = [];
-let pendingItem = null; // ទុក item ដែលកំពុងរង់ចាំបញ្ចូល (បន្ទាប់ពីបិទ modal)
 
-function switchTab(name) {
+function switchTab(tab) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    event.target.classList.add('active');
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.getElementById(name + "-tab").classList.add('active');
-    if (name === "stock") renderInventory();
-    if (name === "stats") updateStats();
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector(`button[onclick="switchTab('${tab}')"]`).classList.add('active');
+    document.getElementById(`${tab}-tab`).classList.add('active');
+    if (tab === 'stock') renderInventory();
+    if (tab === 'stats') updateStats();
 }
 
-function saveItem(e) {
-    e.preventDefault();
-
-    const productCode = document.getElementById('productCode').value.trim();
-
-    // ប្រមូលទិន្នន័យ item មុនពេលពិនិត្យ duplicate
-    const newItem = {
+function saveItem(event) {
+    event.preventDefault();
+    const item = {
+        id: nextId++,
         company: document.getElementById('company').value,
-        productCode: productCode,
+        productCode: document.getElementById('productCode').value,
         partName: document.getElementById('partName').value,
         carModel: document.getElementById('carModel').value,
         modelYear: document.getElementById('modelYear').value,
-        buyPrice: +document.getElementById('buyPrice').value,
-        sellPrice: +document.getElementById('sellPrice').value,
-        image: null
+        buyPrice: parseFloat(document.getElementById('buyPrice').value),
+        sellPrice: parseFloat(document.getElementById('sellPrice').value),
     };
-
-    // ពិនិត្យមើលថាមានកូដនេះរួចឬនៅ
-    const existingItem = inventory.find(i => i.productCode === productCode);
-
-    if (existingItem) {
-        // បង្ហាញ modal សួរជម្រើស
-        document.getElementById('duplicateCode').textContent = productCode;
-        document.getElementById('duplicateModal').classList.add('active');
-
-        // រក្សាទិន្នន័យបណ្តោះអាសន្នសម្រាប់ប្រើក្រោយ
-        pendingItem = newItem;
-
-        const file = document.getElementById('productImage').files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = () => { pendingItem.image = reader.result; };
-            reader.readAsDataURL(file);
-        }
-
-        return; // ឈប់នៅទីនេះ រង់ចាំជម្រើសពី modal
-    }
-
-    // បើគ្មានកូដស្ទួន → បន្ថែមធម្មតា
-    finalizeAdd(newItem);
-}
-
-function addNewItem() {
-    if (!pendingItem) return;
-    finalizeAdd(pendingItem);
-}
-
-function finalizeAdd(item) {
-    item.id = Date.now();
-
     const file = document.getElementById('productImage').files[0];
-    if (file && !item.image) {
+    if (file) {
         const reader = new FileReader();
-        reader.onload = () => {
-            item.image = reader.result;
-            completeAdd(item);
+        reader.onload = function(e) {
+            item.image = e.target.result;
+            proceedToSave(item);
         };
         reader.readAsDataURL(file);
-        return; // រង់ចាំ reader រួចសិន
     } else {
-        completeAdd(item);
+        proceedToSave(item);
     }
 }
 
-function completeAdd(item) {
-    inventory.push(item);
-    localStorage.setItem("autoPartsInventory", JSON.stringify(inventory));
-    document.querySelector('#add-tab form').reset();
-    pendingItem = null;
-    closeDuplicateModal();
-    switchTab("stock");
-    renderInventory(); // Refresh the list immediately
-    updateStats();
-}
-
-function addAsNew() {
-    addNewItem();
-}
-
-function editExisting() {
-    const productCode = document.getElementById('productCode').value.trim();
-    const existingItem = inventory.find(i => i.productCode === productCode);
-
-    if (existingItem) {
-        document.getElementById('company').value = existingItem.company;
-        document.getElementById('productCode').value = existingItem.productCode;
-        document.getElementById('partName').value = existingItem.partName;
-        document.getElementById('carModel').value = existingItem.carModel;
-        document.getElementById('modelYear').value = existingItem.modelYear;
-        document.getElementById('buyPrice').value = existingItem.buyPrice;
-        document.getElementById('sellPrice').value = existingItem.sellPrice;
-
-        alert("ទិន្នន័យចាស់ត្រូវបានបំពេញមកហើយ។ សូមកែប្រែ រួចចុច 'រក្សាទុក' ម្តងទៀត។");
+function proceedToSave(item) {
+    const existing = inventory.find(i => i.productCode === item.productCode);
+    if (existing && !addAsNewFlag) {
+        duplicateItem = item;
+        document.getElementById('duplicateCode').textContent = item.productCode;
+        document.getElementById('duplicateModal').style.display = 'flex';
+    } else {
+        if (addAsNewFlag) addAsNewFlag = false;
+        inventory.push(item);
+        saveToStorage();
+        renderInventory();
+        updateStats();
+        document.querySelector('form').reset();
     }
-    closeDuplicateModal();
 }
 
-function closeDuplicateModal() {
-    document.getElementById('duplicateModal').classList.remove('active');
-    pendingItem = null;
+function saveToStorage() {
+    localStorage.setItem('inventory', JSON.stringify(inventory));
 }
 
 function renderInventory() {
@@ -124,103 +69,125 @@ function renderInventory() {
             i.productCode.toLowerCase().includes(term)
         )
     );
-    document.getElementById('stockTableBody').innerHTML = list.map(i => {
-        let p = i.sellPrice - i.buyPrice;
+    document.getElementById('stockTableBody').innerHTML = list.map((i, idx) => {
         return `
-                    <tr>
-                        <td>${inventory.indexOf(i) + 1}</td>
-                        <td>${i.partName}</td>
-                        <td>${i.carModel}</td>
-                        <td>${i.company}</td>
-                        <td>${i.modelYear}</td>
-                        <td>$${i.buyPrice.toFixed(2)}</td>
-                        <td>$${i.sellPrice.toFixed(2)}</td>
-                        <td>$${p.toFixed(2)}</td>
-                        <td>
-                            <button class="btn btn-sm btn-warning me-2" onclick="editItem(${inventory.indexOf(i)})">កែ ✏️</button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteItem(${inventory.indexOf(i)})">លុប 🗑️</button>
-                        </td>
-                    </tr>`;
+            <tr>
+                <td>${idx + 1}</td>
+                <td>${i.partName}</td>
+                <td>${i.carModel}</td>
+                <td>${i.company}</td>
+                <td>${i.modelYear}</td>
+                <td>$${i.buyPrice.toFixed(2)}</td>
+                <td>$${i.sellPrice.toFixed(2)}</td>
+                <td>$${i.sellPrice.toFixed(2)}</td>
+                <td>
+                    <button class="edit" onclick="openEdit(${i.id})">កែ</button>
+                    <button class="delete" onclick="deleteItem(${i.id})">លុប</button>
+                </td>
+            </tr>
+        `;
     }).join("");
 }
 
 function searchItems() {
-    const terms = document.getElementById('searchInput').value.toLowerCase().split("+").map(s => s.trim()).filter(Boolean);
-    currentSearch = terms;
+    const input = document.getElementById('searchInput').value.toLowerCase().trim();
+    currentSearch = input ? input.split(/\s+/) : [];
     renderInventory();
+}
+
+function updateStats() {
+    const totalProfit = inventory.reduce((s, i) => s + (i.sellPrice - i.buyPrice), 0);
+    const totalValue = inventory.reduce((s, i) => s + i.sellPrice, 0);
+    const lowStock = 0;
+    document.getElementById('totalItems').textContent = inventory.length;
+    document.getElementById('totalValue').textContent = totalValue.toFixed(2);
+    document.getElementById('totalProfit').textContent = totalProfit.toFixed(2);
+    document.getElementById('lowStock').textContent = lowStock;
+}
+
+function exportToCSV() {
+    const csv = ['ល.រ,ឈ្មោះគ្រឿង,ប្រភេទ,ម៉ូដែលឡាន,ឆ្នាំម៉ូដែល,តម្លៃទិញ,តម្លៃលក់,តម្លៃសរុប'];
+    inventory.forEach((i, idx) => {
+        csv.push(`${idx + 1},"${i.partName}","${i.carModel}","${i.company}","${i.modelYear}",${i.buyPrice},${i.sellPrice},${i.sellPrice}`);
+    });
+    const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'krom_krong_lan.csv';
+    a.click();
+}
+
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode', document.getElementById('darkModeToggle').checked);
 }
 
 function openEdit(id) {
     const item = inventory.find(i => i.id === id);
-    if (!item) return;
-    document.getElementById('editId').value = item.id;
-    document.getElementById('editCompany').value = item.company;
-    document.getElementById('editProductCode').value = item.productCode;
-    document.getElementById('editPartName').value = item.partName;
-    document.getElementById('editCarModel').value = item.carModel;
-    document.getElementById('editModelYear').value = item.modelYear;
-    document.getElementById('editBuyPrice').value = item.buyPrice;
-    document.getElementById('editSellPrice').value = item.sellPrice;
-    document.getElementById('editModal').classList.add('active');
+    if (item) {
+        document.getElementById('editId').value = id;
+        document.getElementById('editCompany').value = item.company;
+        document.getElementById('editProductCode').value = item.productCode;
+        document.getElementById('editPartName').value = item.partName;
+        document.getElementById('editCarModel').value = item.carModel;
+        document.getElementById('editModelYear').value = item.modelYear;
+        document.getElementById('editBuyPrice').value = item.buyPrice;
+        document.getElementById('editSellPrice').value = item.sellPrice;
+        document.getElementById('editModal').style.display = 'flex';
+    }
 }
 
-function updateItem(e) {
-    e.preventDefault();
+function updateItem(event) {
+    event.preventDefault();
     const id = parseInt(document.getElementById('editId').value);
-    const index = inventory.findIndex(i => i.id === id);
-    if (index === -1) return;
-    inventory[index] = {
-        ...inventory[index],
-        company: document.getElementById('editCompany').value,
-        productCode: document.getElementById('editProductCode').value,
-        partName: document.getElementById('editPartName').value,
-        carModel: document.getElementById('editCarModel').value,
-        modelYear: document.getElementById('editModelYear').value,
-        buyPrice: +document.getElementById('editBuyPrice').value,
-        sellPrice: +document.getElementById('editSellPrice').value
-    };
-    localStorage.setItem("autoPartsInventory", JSON.stringify(inventory));
-    closeModal();
-    renderInventory();
-    updateStats();
-}
-
-function closeModal() {
-    document.getElementById('editModal').classList.remove('active');
+    const item = inventory.find(i => i.id === id);
+    if (item) {
+        item.company = document.getElementById('editCompany').value;
+        item.productCode = document.getElementById('editProductCode').value;
+        item.partName = document.getElementById('editPartName').value;
+        item.carModel = document.getElementById('editCarModel').value;
+        item.modelYear = document.getElementById('editModelYear').value;
+        item.buyPrice = parseFloat(document.getElementById('editBuyPrice').value);
+        item.sellPrice = parseFloat(document.getElementById('editSellPrice').value);
+        saveToStorage();
+        renderInventory();
+        updateStats();
+        closeModal();
+    }
 }
 
 function deleteItem(id) {
-    if (confirm("លុបទំនិញនេះមែនទេ?")) {
+    if (confirm('តើអ្នកប្រាកដជាចង់លុបគ្រឿងនេះទេ?')) {
         inventory = inventory.filter(i => i.id !== id);
-        localStorage.setItem("autoPartsInventory", JSON.stringify(inventory));
+        saveToStorage();
         renderInventory();
         updateStats();
     }
 }
 
-function updateStats() {
-    const totalProfit = inventory.reduce((s, i) => s + (i.sellPrice - i.buyPrice), 0);
-    document.getElementById('totalItems').textContent = inventory.length;
-    document.getElementById('totalProfit').textContent = "$" + totalProfit.toFixed(2);
+function closeModal() {
+    document.getElementById('editModal').style.display = 'none';
 }
 
-// Init
-renderInventory();
-updateStats();
-
-// Dark Mode Toggle
-function toggleDarkMode() {
-    const isDark = document.getElementById('darkModeToggle').checked;
-    document.body.classList.toggle('light-mode', !isDark); // Dark by default, toggle to light
-    localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+function closeDuplicateModal() {
+    document.getElementById('duplicateModal').style.display = 'none';
+    duplicateItem = null;
 }
 
-// Init theme from localStorage
-const savedDarkMode = localStorage.getItem('darkMode');
-if (savedDarkMode === 'enabled') {
-    document.getElementById('darkModeToggle').checked = true;
-    document.body.classList.remove('light-mode');
-} else {
-    document.getElementById('darkModeToggle').checked = false;
-    document.body.classList.add('light-mode');
+function addAsNew() {
+    addAsNewFlag = true;
+    proceedToSave(duplicateItem);
+    closeDuplicateModal();
 }
+
+function editExisting() {
+    closeDuplicateModal();
+    const existing = inventory.find(i => i.productCode === duplicateItem.productCode);
+    openEdit(existing.id);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    switchTab('add');
+    updateStats();
+});
+```    const
