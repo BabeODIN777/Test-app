@@ -4,95 +4,159 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>កម្មវិធីគ្រប់គ្រងគ្រឿងឡាន</title>
-    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans Khmer', sans-serif; background: #f3f4f6; }
+        .header { background: #1e40af; color: white; }
+        .card { box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .low-stock { background-color: #fff3cd; }
+        .alert-low { background-color: #f97316; color: white; }
+    </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>🚗 កម្មវិធីគ្រប់គ្រងគ្រឿងឡាន</h1>
-        <label class="theme-toggle">
-            <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
-            <span>🌙 / ☀️</span>
-        </label>
-    </div>
-    <div class="tabs">
-        <button class="tab active" onclick="switchTab('stock')">📦 ស្តុក</button>
-        <button class="tab" onclick="switchTab('add')">➕ បន្ថែម</button>
-        <button class="tab" onclick="switchTab('stats')">📊 ស្ថិតិ</button>
-    </div>
-    <!-- STOCK -->
-    <div id="stock-tab" class="tab-content active">
-        <div class="search-box">
-            <input id="searchInput" placeholder="🔍 Brake + Toyota + 2002" oninput="searchItems()">
+    <header class="header py-3 text-center">
+        <h1 class="mb-0">កម្មវិធីគ្រប់គ្រងគ្រឿងឡាន 🚗</h1>
+    </header>
+
+    <div class="container my-4">
+        <!-- Dashboard Stats -->
+        <div class="row mb-4">
+            <div class="col-md-3"><div class="card p-3 text-center"><h5>ទំនិញសរុប</h5><h3 id="totalItems">0</h3></div></div>
+            <div class="col-md-3"><div class="card p-3 text-center"><h5>តម្លៃសរុប ($)</h5><h3 id="totalValue">0.00</h3></div></div>
+            <div class="col-md-3"><div class="card p-3 text-center"><h5>ប្រាក់ចំណេញសរុប ($)</h5><h3 id="totalProfit">0.00</h3></div></div>
+            <div class="col-md-3"><div class="card p-3 text-center alert-low"><h5>គ្រឿងស្តុកទាប</h5><h3 id="lowStockCount">0</h3></div></div>
         </div>
-        <div id="inventoryList" class="inventory-list"></div>
-    </div>
-    <!-- ADD -->
-    <div id="add-tab" class="tab-content">
-        <div class="form-card">
-            <form onsubmit="saveItem(event)">
-                <label>ក្រុមហ៊ុន</label><input id="company" required>
-                <label>កូដ</label><input id="productCode" required>
-                <label>ឈ្មោះគ្រឿង</label><input id="partName" required>
-                <label>ម៉ូដែលឡាន</label><input id="carModel" required>
-                <label>ឆ្នាំម៉ូដែល</label><input id="modelYear" required>
-                <label>រូបភាព</label><input type="file" id="productImage" accept="image/*">
-                <label>តម្លៃទិញ</label><input type="number" id="buyPrice" required step="0.01">
-                <label>តម្លៃលក់</label><input type="number" id="sellPrice" required step="0.01">
-                <button class="btn">💾 រក្សាទុក</button>
-            </form>
-        </div>
-    </div>
-    <!-- STATS -->
-    <div id="stats-tab" class="tab-content">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value" id="totalItems">0</div>ទំនិញសរុប
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#stock">ស្តុក</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#add">បន្ថែម</a></li>
+        </ul>
+
+        <div class="tab-content">
+            <!-- Stock List -->
+            <div class="tab-pane fade show active" id="stock">
+                <input type="text" id="search" class="form-control mb-3" placeholder="ស្វែងរកឈ្មោះគ្រឿង...">
+                <button class="btn btn-success mb-3" onclick="exportCSV()">នាំចេញជា CSV</button>
+                <table class="table table-striped" id="stockTable">
+                    <thead><tr><th onclick="sortTable(0)">ល.រ</th><th onclick="sortTable(1)">ឈ្មោះគ្រឿង</th><th>ប្រភេទ</th><th onclick="sortTable(3)">បរិមាណ</th><th>តម្លៃ ($)</th><th>តម្លៃសរុប</th><th>សកម្មភាព</th></tr></thead>
+                    <tbody></tbody>
+                </table>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="totalProfit">$0</div>ចំណេញសរុប
+
+            <!-- Add/Edit Form -->
+            <div class="tab-pane fade" id="add">
+                <form id="itemForm">
+                    <input type="hidden" id="itemId">
+                    <div class="mb-3"><label>ឈ្មោះគ្រឿង</label><input type="text" class="form-control" id="name" required></div>
+                    <div class="mb-3"><label>ប្រភេទ</label>
+                        <select class="form-control" id="category">
+                            <option>ម៉ាស៊ីន</option><option>កង់</option><option>ហ្វ្រាំង</option><option>អគ្គិសនី</option><option>ផ្សេងៗ</option>
+                        </select>
+                    </div>
+                    <div class="mb-3"><label>បរិមាណ</label><input type="number" class="form-control" id="quantity" min="0" required></div>
+                    <div class="mb-3"><label>តម្លៃលក់ ($)</label><input type="number" class="form-control" id="price" step="0.01" required></div>
+                    <div class="mb-3"><label>តម្លៃទិញ ($)</label><input type="number" class="form-control" id="cost" step="0.01"></div>
+                    <button type="submit" class="btn btn-primary">រក្សាទុក</button>
+                </form>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Edit Modal -->
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>✏️ កែប្រែ</h2>
-            <button class="close-btn" onclick="closeModal()">×</button>
-        </div>
-        <form onsubmit="updateItem(event)">
-            <input type="hidden" id="editId">
-            <label>ក្រុមហ៊ុន</label><input id="editCompany" required>
-            <label>កូដ</label><input id="editProductCode" required>
-            <label>ឈ្មោះគ្រឿង</label><input id="editPartName" required>
-            <label>ម៉ូដែលឡាន</label><input id="editCarModel" required>
-            <label>ឆ្នាំម៉ូដែល</label><input id="editModelYear" required>
-            <label>តម្លៃទិញ</label><input type="number" id="editBuyPrice" required step="0.01">
-            <label>តម្លៃលក់</label><input type="number" id="editSellPrice" required step="0.01">
-            <button class="btn">💾 រក្សាទុក</button>
-        </form>
-    </div>
-</div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let items = JSON.parse(localStorage.getItem('autoParts')) || [];
+        const categories = ['ម៉ាស៊ីន', 'កង់', 'ហ្វ្រាំង', 'អគ្គិសនី', 'ផ្សេងៗ'];
 
-<!-- Duplicate Code Warning Modal -->
-<div id="duplicateModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>⚠️ រកឃើញកូដស្ទួន</h2>
-            <button class="close-btn" onclick="closeDuplicateModal()">×</button>
-        </div>
-        <p>កូដ "<span id="duplicateCode"></span>" មានរួចហើយនៅក្នុងប្រព័ន្ធ។<br>តើអ្នកចង់៖</p>
-        <div class="modal-buttons">
-            <button class="modal-btn-add" onclick="addAsNew()">បន្ថែមជាថ្មី</button>
-            <button class="modal-btn-edit" onclick="editExisting()">កែប្រែចាស់</button>
-            <button class="modal-btn-cancel" onclick="closeDuplicateModal()">បោះបង់</button>
-        </div>
-    </div>
-</div>
+        function renderTable(filter = '') {
+            const tbody = document.querySelector('#stockTable tbody');
+            tbody.innerHTML = '';
+            let lowCount = 0;
+            items.filter(item => item.name.toLowerCase().includes(filter.toLowerCase())).forEach((item, index) => {
+                if (item.quantity < 10) lowCount++;
+                const row = `<tr ${item.quantity < 10 ? 'class="low-stock"' : ''}>
+                    <td>${index + 1}</td>
+                    <td>${item.name}</td>
+                    <td>${item.category}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.price.toFixed(2)}</td>
+                    <td>${(item.price * item.quantity).toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="editItem(${index})">កែប្រែ</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteItem(${index})">លុប</button>
+                    </td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+            updateStats(lowCount);
+        }
 
-<script src="script.js"></script>
+        function updateStats(lowCount = 0) {
+            const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
+            const totalValue = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+            const totalProfit = items.reduce((sum, i) => sum + (i.price - (i.cost || 0)) * i.quantity, 0);
+            document.getElementById('totalItems').textContent = totalItems;
+            document.getElementById('totalValue').textContent = totalValue.toFixed(2);
+            document.getElementById('totalProfit').textContent = totalProfit.toFixed(2);
+            document.getElementById('lowStockCount').textContent = lowCount;
+        }
+
+        document.getElementById('itemForm').addEventListener('submit', e => {
+            e.preventDefault();
+            const id = document.getElementById('itemId').value;
+            const item = {
+                name: document.getElementById('name').value,
+                category: document.getElementById('category').value,
+                quantity: parseInt(document.getElementById('quantity').value),
+                price: parseFloat(document.getElementById('price').value),
+                cost: parseFloat(document.getElementById('cost').value || 0)
+            };
+            if (id === '') items.push(item); else items[parseInt(id)] = item;
+            localStorage.setItem('autoParts', JSON.stringify(items));
+            renderTable();
+            e.target.reset();
+            document.getElementById('itemId').value = '';
+        });
+
+        function editItem(index) {
+            const item = items[index];
+            document.getElementById('itemId').value = index;
+            document.getElementById('name').value = item.name;
+            document.getElementById('category').value = item.category;
+            document.getElementById('quantity').value = item.quantity;
+            document.getElementById('price').value = item.price;
+            document.getElementById('cost').value = item.cost || '';
+            new bootstrap.Tab(document.querySelector('#add')).show();
+        }
+
+        function deleteItem(index) {
+            if (confirm('លុបគ្រឿងនេះមែនទេ?')) {
+                items.splice(index, 1);
+                localStorage.setItem('autoParts', JSON.stringify(items));
+                renderTable();
+            }
+        }
+
+        function exportCSV() {
+            let csv = 'ល.រ,ឈ្មោះគ្រឿង,ប្រភេទ,បរិមាណ,តម្លៃ,តម្លៃសរុប\n';
+            items.forEach((item, i) => {
+                csv += `${i+1},${item.name},${item.category},${item.quantity},${item.price},${item.price * item.quantity}\n`;
+            });
+            const blob = new Blob([csv], {type: 'text/csv'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'stock.csv'; a.click();
+        }
+
+        // Simple sort (add more for other columns if needed)
+        function sortTable(col) {
+            // Implement basic sort logic here (e.g., for quantity)
+        }
+
+        document.getElementById('search').addEventListener('input', e => renderTable(e.target.value));
+
+        renderTable();
+    </script>
 </body>
 </html>
