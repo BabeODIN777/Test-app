@@ -1,11 +1,17 @@
 // Service Worker for Auto Parts Manager PWA
-const CACHE_NAME = 'auto-parts-v1.2';
+const CACHE_NAME = 'auto-parts-v2.0';
 const urlsToCache = [
   '/Test-app/',
   '/Test-app/index.html',
   '/Test-app/styles.css',
   '/Test-app/script.js',
   '/Test-app/manifest.json',
+  '/Test-app/favicon.ico',
+  '/Test-app/favicon-16x16.png',
+  '/Test-app/favicon-32x32.png',
+  '/Test-app/android-chrome-192x192.png',
+  '/Test-app/android-chrome-512x512.png',
+  '/Test-app/apple-touch-icon.png',
   'https://unpkg.com/vue@3/dist/vue.global.js',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
