@@ -131,6 +131,11 @@
                             <button class="delete" @click="deleteItem(item.id)">
                                 <i class="fas fa-trash"></i> លុប
                             </button>
+                        <div class="qr-section">
+                            <button class="qr-btn" @click="generateQR(item)">
+                                <i class="fas fa-qrcode"></i> QR
+                            </button>
+                           </div>
                         </div>
                     </div>
                 </div>
@@ -240,6 +245,37 @@
                         <button type="button" class="modal-btn-cancel" @click="closeEditModal">
                             <i class="fas fa-times"></i> បោះបង់
                         </button>
+                        <div v-if="showQRModal" class="modal active">
+  <div class="modal-content qr-modal">
+    <div class="modal-header">
+      <h2><i class="fas fa-qrcode"></i> QR Code for {{ qrItem.partName }}</h2>
+      <button class="close-btn" @click="closeQRModal">&times;</button>
+    </div>
+    <div class="qr-container">
+      <div class="qr-code" ref="qrCodeElement">
+        <!-- QR will be generated here -->
+      </div>
+      <div class="qr-info">
+        <p><strong>Part:</strong> {{ qrItem.partName }}</p>
+        <p><strong>Code:</strong> {{ qrItem.productCode }}</p>
+        <p><strong>Car:</strong> {{ qrItem.carModel }} ({{ qrItem.modelYear }})</p>
+        <p><strong>Price:</strong> ${{ qrItem.sellPrice.toFixed(2) }}</p>
+        <p><strong>Stock:</strong> {{ qrItem.quantity }}</p>
+      </div>
+    </div>
+    <div class="modal-buttons">
+      <button class="modal-btn-add" @click="downloadQR">
+        <i class="fas fa-download"></i> Download
+      </button>
+      <button class="modal-btn-edit" @click="printQR">
+        <i class="fas fa-print"></i> Print
+      </button>
+      <button class="modal-btn-cancel" @click="closeQRModal">
+        <i class="fas fa-times"></i> Close
+      </button>
+    </div>
+  </div>
+</div>
                     </div>
                 </form>
             </div>
