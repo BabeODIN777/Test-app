@@ -3,7 +3,31 @@ const { createApp, ref, computed, onMounted } = Vue;
 createApp({
     setup() {
         // ... existing reactive state (keep all your current state) ...
+        const showInstallBtn = ref(false);
+let deferredPrompt = null;
 
+const installPWA = () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(choice => {
+            if (choice.outcome === 'accepted') {
+                showInstallBtn.value = false;
+            }
+            deferredPrompt = null;
+        });
+    }
+};
+
+// In mounted:
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    showInstallBtn.value = true;
+});
+
+window.addEventListener('appinstalled', () => {
+    showInstallBtn.value = false;
+});
         // ADD THESE NEW STATE VARIABLES:
         const showQRModal = ref(false);
         const qrItem = ref(null);
