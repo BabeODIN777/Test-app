@@ -2,7 +2,6 @@ const { createApp, ref, computed, onMounted } = Vue;
 
 createApp({
     setup() {
-        // ==================== ORIGINAL CORE STATE ====================
         const inventory = ref(JSON.parse(localStorage.getItem('inventory')) || []);
         const activeTab = ref('add');
         const searchQuery = ref('');
@@ -12,7 +11,6 @@ createApp({
         const duplicateItem = ref(null);
         const nextId = ref(inventory.value.length ? Math.max(...inventory.value.map(i => i.id)) + 1 : 1);
 
-        // Form models
         const form = ref({
             company: '',
             productCode: '',
@@ -36,17 +34,15 @@ createApp({
             sellPrice: 0
         });
 
-        // ==================== NEW FEATURES STATE ====================
         const showInstallBtn = ref(false);
-        let deferredPrompt = null; // Note: not reactive
-
+        let deferredPrompt = null;
         const showQRModal = ref(false);
         const qrItem = ref(null);
         const bulkTab = ref('import');
         const importResults = ref(null);
         const qrCodeInstance = ref(null);
+        const currentQRData = ref(null);
 
-        // ==================== COMPUTED PROPERTIES ====================
         const filteredInventory = computed(() => {
             if (!searchQuery.value.trim()) return inventory.value;
             const query = searchQuery.value.toLowerCase();
@@ -64,7 +60,6 @@ createApp({
         const totalProfit = computed(() => inventory.value.reduce((sum, item) => sum + (item.sellPrice - item.buyPrice), 0));
         const lowStockCount = computed(() => inventory.value.filter(item => item.quantity <= 2).length);
 
-        // ==================== ORIGINAL CORE FUNCTIONS ====================
         const toggleTheme = () => {
             document.body.classList.toggle('light-mode', isLightMode.value);
             localStorage.setItem('theme', isLightMode.value ? 'light' : 'dark');
@@ -75,7 +70,6 @@ createApp({
         };
 
         const saveItem = () => {
-            // Validate sell price >= buy price
             if (parseFloat(form.value.sellPrice) < parseFloat(form.value.buyPrice)) {
                 alert('តម្លៃលក់ត្រូវតែធំជាង ឬស្មើតម្លៃទិញ');
                 return;
@@ -89,7 +83,6 @@ createApp({
                 quantity: parseInt(form.value.quantity)
             };
 
-            // Check for duplicate product code
             const existing = inventory.value.find(item => item.productCode === newItem.productCode);
             if (existing) {
                 duplicateItem.value = newItem;
@@ -130,7 +123,6 @@ createApp({
         };
 
         const updateItem = () => {
-            // Validate sell price >= buy price
             if (parseFloat(editForm.value.sellPrice) < parseFloat(editForm.value.buyPrice)) {
                 alert('តម្លៃលក់ត្រូវតែធំជាង ឬស្មើតម្លៃទិញ');
                 return;
@@ -211,7 +203,6 @@ createApp({
             };
         };
 
-        // ==================== PWA INSTALL FUNCTIONS ====================
         const installPWA = () => {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
@@ -224,120 +215,155 @@ createApp({
             }
         };
 
-        // ==================== QR CODE FUNCTIONS ====================
         const nextTick = () => new Promise(resolve => setTimeout(resolve, 50));
 
         const generateQR = async (item) => {
             qrItem.value = item;
+            currentQRData.value = item;
             showQRModal.value = true;
             
-            // Wait for DOM to update
             await nextTick();
             
-            // Clear previous QR
             const qrContainer = document.querySelector('.qr-code');
-            if (qrContainer) qrContainer.innerHTML = '';
+            if (!qrContainer) return;
             
-            // Create QR data
-            const qrData = JSON.stringify({
-                partName: item.partName,
-                productCode: item.productCode,
-                carModel: item.carModel,
-                company: item.company,
-                buyPrice: item.buyPrice,
-                sellPrice: item.sellPrice,
-                quantity: item.quantity,
-                id: item.id,
-                timestamp: new Date().toISOString()
-            });
+            qrContainer.innerHTML = '';
             
-            // Generate QR Code using QRCode.js library
-            generateQRCodeCanvas(qrData, qrContainer);
+            const qrText = `Auto Parts\n${item.partName}\nCode: ${item.productCode}\nCar: ${item.carModel}\nPrice: $${item.sellPrice}\nStock: ${item.quantity}`;
+            
+            generateQRCodeCanvas(qrText, qrContainer);
         };
 
         const generateQRCodeCanvas = (data, container) => {
-            // Clear container first
             container.innerHTML = '';
             
-            // Generate real QR code using QRCode.js library
-            QRCode.toCanvas(container, data, {
-                width: 180,
-                margin: 1,
-                color: {
-                    dark: '#000000',
-                    light: '#FFFFFF'
-                }
-            }, function(error) {
-                if (error) {
-                    console.error('QR Code error:', error);
-                    // Fallback to simple pattern if QR library fails
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 180;
-                    canvas.height = 180;
-                    const ctx = canvas.getContext('2d');
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(0, 0, 180, 180);
-                    ctx.fillStyle = 'black';
-                    ctx.font = '14px Arial';
-                    ctx.fillText('Auto Parts', 50, 90);
-                    ctx.font = '10px Arial';
-                    ctx.fillText(qrItem.value.productCode, 60, 110);
+            const canvas = document.createElement('canvas');
+            canvas.width = 200;
+            canvas.height = 200;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, 200, 200);
+            
+            if (typeof QRCode !== 'undefined') {
+                try {
+                    QRCode.toCanvas(canvas, data, {
+                        width: 200,
+                        margin: 1,
+                        color: {
+                            dark: '#000000',
+                            light: '#FFFFFF'
+                        }
+                    }, function(error) {
+                        if (error) {
+                            console.warn('Using fallback QR:', error);
+                            drawFallbackQR(ctx, data);
+                        }
+                        container.appendChild(canvas);
+                        qrCodeInstance.value = canvas;
+                    });
+                } catch (error) {
+                    drawFallbackQR(ctx, data);
                     container.appendChild(canvas);
                     qrCodeInstance.value = canvas;
-                } else {
-                    // Store the canvas element for download/print
-                    qrCodeInstance.value = container.querySelector('canvas');
                 }
-            });
+            } else {
+                drawFallbackQR(ctx, data);
+                container.appendChild(canvas);
+                qrCodeInstance.value = canvas;
+            }
+        };
+
+        const drawFallbackQR = (ctx, data) => {
+            ctx.fillStyle = '#000000';
+            
+            ctx.fillRect(10, 10, 40, 40);
+            ctx.fillRect(150, 10, 40, 40);
+            ctx.fillRect(10, 150, 40, 40);
+            
+            for (let i = 0; i < data.length; i++) {
+                const x = 60 + (i % 10) * 12;
+                const y = 60 + Math.floor(i / 10) * 12;
+                ctx.fillRect(x, y, 8, 8);
+            }
+            
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('AUTO PARTS', 100, 190);
         };
 
         const downloadQR = () => {
-            if (!qrCodeInstance.value) return;
+            if (!qrCodeInstance.value) {
+                alert('Generate QR first!');
+                return;
+            }
             
             const link = document.createElement('a');
-            link.download = `QR_${qrItem.value.productCode}.png`;
+            const filename = currentQRData.value 
+                ? `QR_${currentQRData.value.productCode}.png`
+                : 'auto_parts_qr.png';
+            
+            link.download = filename;
             link.href = qrCodeInstance.value.toDataURL('image/png');
             link.click();
         };
 
         const printQR = () => {
+            if (!qrCodeInstance.value || !currentQRData.value) {
+                alert('Generate QR first!');
+                return;
+            }
+            
             const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                alert('Allow popups to print.');
+                return;
+            }
+            
+            const qrImageData = qrCodeInstance.value.toDataURL('image/png');
+            
             printWindow.document.write(`
+                <!DOCTYPE html>
                 <html>
-                    <head>
-                        <title>QR Code - ${qrItem.value.partName}</title>
-                        <style>
-                            body { font-family: Arial; padding: 20px; text-align: center; }
-                            h2 { color: #333; }
-                            .info { margin: 20px 0; text-align: left; }
-                            .info p { margin: 5px 0; }
-                        </style>
-                    </head>
-                    <body>
-                        <h2>${qrItem.value.partName}</h2>
-                        <div>
-                            <img src="${qrCodeInstance.value.toDataURL('image/png')}" width="200">
-                        </div>
-                        <div class="info">
-                            <p><strong>Code:</strong> ${qrItem.value.productCode}</p>
-                            <p><strong>Car:</strong> ${qrItem.value.carModel}</p>
-                            <p><strong>Stock:</strong> ${qrItem.value.quantity}</p>
-                            <p><strong>Price:</strong> $${qrItem.value.sellPrice.toFixed(2)}</p>
-                        </div>
-                    </body>
+                <head>
+                    <title>QR Code</title>
+                    <style>
+                        body { font-family: Arial; padding: 20px; text-align: center; }
+                        h2 { color: #333; }
+                        .info { margin: 20px 0; text-align: left; }
+                        .info p { margin: 5px 0; }
+                    </style>
+                </head>
+                <body>
+                    <h2>${currentQRData.value.partName}</h2>
+                    <div>
+                        <img src="${qrImageData}" width="200">
+                    </div>
+                    <div class="info">
+                        <p><strong>Code:</strong> ${currentQRData.value.productCode}</p>
+                        <p><strong>Car:</strong> ${currentQRData.value.carModel}</p>
+                        <p><strong>Stock:</strong> ${currentQRData.value.quantity}</p>
+                        <p><strong>Price:</strong> $${currentQRData.value.sellPrice.toFixed(2)}</p>
+                    </div>
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            setTimeout(function() { window.close(); }, 500);
+                        };
+                    <\/script>
+                </body>
                 </html>
             `);
+            
             printWindow.document.close();
-            printWindow.print();
         };
 
         const closeQRModal = () => {
             showQRModal.value = false;
             qrItem.value = null;
-            qrCodeInstance.value = null;
         };
 
-        // ==================== BULK IMPORT/EXPORT ====================
         const downloadTemplate = () => {
             const headers = ['company', 'productCode', 'partName', 'carModel', 'modelYear', 'quantity', 'buyPrice', 'sellPrice'];
             const example = ['Toyota', 'TYT-2023-BRK', 'Brake Pad', 'Camry', '2023', '10', '25.50', '45.99'];
@@ -363,7 +389,6 @@ createApp({
                 let success = 0;
                 let errors = [];
                 
-                // Process each line (skip header)
                 for (let i = 1; i < lines.length; i++) {
                     const values = lines[i].split(',');
                     const item = {};
@@ -372,24 +397,19 @@ createApp({
                         item[header] = values[index] ? values[index].trim() : '';
                     });
                     
-                    // Validate required fields
                     if (!item.productCode || !item.partName) {
                         errors.push(`Line ${i}: Missing required fields`);
                         continue;
                     }
                     
-                    // Convert numeric fields
                     item.quantity = parseInt(item.quantity) || 1;
                     item.buyPrice = parseFloat(item.buyPrice) || 0;
                     item.sellPrice = parseFloat(item.sellPrice) || 0;
                     
-                    // Check for duplicates
                     const existing = inventory.value.find(i => i.productCode === item.productCode);
                     if (existing) {
-                        // Update existing
                         Object.assign(existing, item);
                     } else {
-                        // Add new
                         item.id = nextId.value++;
                         inventory.value.push(item);
                     }
@@ -404,7 +424,6 @@ createApp({
                     total: lines.length - 1
                 };
                 
-                // Reset file input
                 event.target.value = '';
             };
             reader.readAsText(file);
@@ -431,12 +450,9 @@ createApp({
             a.click();
         };
 
-        // ==================== MOUNTED HOOK ====================
         onMounted(() => {
-            // Initialize theme
             document.body.classList.toggle('light-mode', isLightMode.value);
             
-            // PWA event listeners
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredPrompt = e;
@@ -447,7 +463,6 @@ createApp({
                 showInstallBtn.value = false;
             });
 
-            // Ensure existing items have quantity field (for backward compatibility)
             inventory.value = inventory.value.map(item => ({
                 ...item,
                 quantity: item.quantity || 1
@@ -455,9 +470,7 @@ createApp({
             saveToStorage();
         });
 
-        // ==================== RETURN ALL TO TEMPLATE ====================
         return {
-            // Original state
             inventory,
             activeTab,
             searchQuery,
@@ -467,19 +480,16 @@ createApp({
             duplicateItem,
             form,
             editForm,
-            // New state
             showInstallBtn,
             showQRModal,
             qrItem,
             bulkTab,
             importResults,
-            // Computed properties
             filteredInventory,
             totalItems,
             totalCost,
             totalProfit,
             lowStockCount,
-            // Original methods
             toggleTheme,
             saveItem,
             addAsNew,
@@ -490,7 +500,6 @@ createApp({
             exportToCSV,
             closeDuplicateModal,
             closeEditModal,
-            // New methods
             installPWA,
             generateQR,
             downloadQR,
@@ -500,5 +509,5 @@ createApp({
             handleImport,
             exportAllToCSV
         };
-    }  // <-- This closes the setup() function
-}).mount('#app');  // <-- This closes and mounts the Vue app
+    }
+}).mount('#app');
