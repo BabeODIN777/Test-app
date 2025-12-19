@@ -27,6 +27,9 @@
                     <span>{{ isLightMode ? '🌙 របៀបងងឹត' : '☀️ របៀបស្រាល' }}</span>
                 </label>
             </div>
+             <div class="install-btn" v-if="showInstallBtn" @click="installPWA">
+             <i class="fas fa-download"></i> ដំឡើងកម្មធាវិធី
+             </div>
         </div>
 
         <div class="container">
