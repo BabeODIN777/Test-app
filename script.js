@@ -256,24 +256,40 @@ createApp({
         };
 
         const generateQRCodeCanvas = (data, container) => {
-            // Simple QR code generator using canvas
+    // Clear container first
+    container.innerHTML = '';
+    
+    // Generate real QR code
+    QRCode.toCanvas(container, data, {
+        width: 180,
+        margin: 1,
+        color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+        }
+    }, function(error) {
+        if (error) {
+            console.error('QR Code error:', error);
+            // Fallback to simple pattern if QR library fails
             const canvas = document.createElement('canvas');
             canvas.width = 180;
             canvas.height = 180;
             const ctx = canvas.getContext('2d');
-            
-            // Create a simple pattern QR (for demo)
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, 180, 180);
-            
-            // Draw a simple pattern
             ctx.fillStyle = 'black';
-            const cellSize = 10;
-            for (let i = 0; i < data.length; i++) {
-                const x = (i * 7) % 160 + 10;
-                const y = Math.floor(i / 10) * 10 + 10;
-                ctx.fillRect(x, y, cellSize, cellSize);
-            }
+            ctx.font = '14px Arial';
+            ctx.fillText('Auto Parts', 50, 90);
+            ctx.font = '10px Arial';
+            ctx.fillText(qrItem.value.productCode, 60, 110);
+            container.appendChild(canvas);
+            qrCodeInstance.value = canvas;
+        } else {
+            // Store the canvas element for download/print
+            qrCodeInstance.value = container.querySelector('canvas');
+        }
+    });
+};
             
             // Add text
             ctx.fillStyle = 'black';
