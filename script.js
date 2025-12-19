@@ -251,53 +251,44 @@ createApp({
                 timestamp: new Date().toISOString()
             });
             
-            // Generate QR Code using pure JavaScript (no external library)
+            // Generate QR Code using QRCode.js library
             generateQRCodeCanvas(qrData, qrContainer);
         };
 
         const generateQRCodeCanvas = (data, container) => {
-    // Clear container first
-    container.innerHTML = '';
-    
-    // Generate real QR code
-    QRCode.toCanvas(container, data, {
-        width: 180,
-        margin: 1,
-        color: {
-            dark: '#000000',
-            light: '#FFFFFF'
-        }
-    }, function(error) {
-        if (error) {
-            console.error('QR Code error:', error);
-            // Fallback to simple pattern if QR library fails
-            const canvas = document.createElement('canvas');
-            canvas.width = 180;
-            canvas.height = 180;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, 180, 180);
-            ctx.fillStyle = 'black';
-            ctx.font = '14px Arial';
-            ctx.fillText('Auto Parts', 50, 90);
-            ctx.font = '10px Arial';
-            ctx.fillText(qrItem.value.productCode, 60, 110);
-            container.appendChild(canvas);
-            qrCodeInstance.value = canvas;
-        } else {
-            // Store the canvas element for download/print
-            qrCodeInstance.value = container.querySelector('canvas');
-        }
-    });
-};
+            // Clear container first
+            container.innerHTML = '';
             
-            // Add text
-            ctx.fillStyle = 'black';
-            ctx.font = '10px Arial';
-            ctx.fillText('Auto Parts', 60, 170);
-            
-            container.appendChild(canvas);
-            qrCodeInstance.value = canvas;
+            // Generate real QR code using QRCode.js library
+            QRCode.toCanvas(container, data, {
+                width: 180,
+                margin: 1,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            }, function(error) {
+                if (error) {
+                    console.error('QR Code error:', error);
+                    // Fallback to simple pattern if QR library fails
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 180;
+                    canvas.height = 180;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, 180, 180);
+                    ctx.fillStyle = 'black';
+                    ctx.font = '14px Arial';
+                    ctx.fillText('Auto Parts', 50, 90);
+                    ctx.font = '10px Arial';
+                    ctx.fillText(qrItem.value.productCode, 60, 110);
+                    container.appendChild(canvas);
+                    qrCodeInstance.value = canvas;
+                } else {
+                    // Store the canvas element for download/print
+                    qrCodeInstance.value = container.querySelector('canvas');
+                }
+            });
         };
 
         const downloadQR = () => {
@@ -509,5 +500,5 @@ createApp({
             handleImport,
             exportAllToCSV
         };
-    }
-}).mount('#app');
+    }  // <-- This closes the setup() function
+}).mount('#app');  // <-- This closes and mounts the Vue app
