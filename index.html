@@ -118,6 +118,45 @@
                 <div class="search-box">
                     <input type="text" v-model="searchQuery" placeholder="ស្វែងរកគ្រឿង...">
                 </div>
+                      <!-- Add this after the search box in Stock tab -->
+                <div class="filter-section">
+                <div class="filter-row">
+                <select v-model="selectedCompany" @change="applyFilters">
+                <option value="">គ្រប់ក្រុមហ៊ុន</option>
+                <option v-for="company in uniqueCompanies" :value="company">{{ company }}</option>
+                </select>
+        
+                <select v-model="selectedCarModel" @change="applyFilters">
+                <option value="">គ្រប់ម៉ូដែលឡាន</option>
+                <option v-for="model in uniqueCarModels" :value="model">{{ model }}</option>
+                </select>
+        
+                <select v-model="selectedYear" @change="applyFilters">
+            <option value="">គ្រប់ឆ្នាំម៉ូដែល</option>
+            <option v-for="year in uniqueYears" :value="year">{{ year }}</option>
+        </select>
+        
+        <button class="clear-filters" @click="clearFilters">
+            <i class="fas fa-times"></i> លុបតម្រង
+        </button>
+    </div>
+    
+    <!-- Active Filters Display -->
+    <div v-if="hasActiveFilters" class="active-filters">
+        <span class="filter-tag" v-if="selectedCompany">
+            ក្រុមហ៊ុន: {{ selectedCompany }}
+            <span @click="selectedCompany = ''">×</span>
+        </span>
+        <span class="filter-tag" v-if="selectedCarModel">
+            ម៉ូដែល: {{ selectedCarModel }}
+            <span @click="selectedCarModel = ''">×</span>
+        </span>
+        <span class="filter-tag" v-if="selectedYear">
+            ឆ្នាំ: {{ selectedYear }}
+            <span @click="selectedYear = ''">×</span>
+        </span>
+    </div>
+</div>
                 <div class="inventory-list">
                     <div v-for="item in filteredInventory" :key="item.id" class="inventory-item">
                         <div class="item-top">
