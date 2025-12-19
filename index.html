@@ -5,127 +5,247 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>កម្មវិធីគ្រប់គ្រងគ្រឿងឡាន</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Vue.js 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
+    <div id="app">
+        <!-- Header & Theme Toggle -->
         <div class="header">
-            <h1>កម្មវិធីគ្រប់គ្រងគ្រឿងឡាន 🚗</h1>
+            <h1><i class="fas fa-car"></i> កម្មវិធីគ្រប់គ្រងគ្រឿងឡាន</h1>
+            <div class="theme-toggle">
+                <label>
+                    <input type="checkbox" v-model="isLightMode" @change="toggleTheme">
+                    <span>{{ isLightMode ? '🌙 របៀបងងឹត' : '☀️ របៀបស្រាល' }}</span>
+                </label>
+            </div>
         </div>
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('add')">បន្ថែមគ្រឿង</button>
-            <button class="tab" onclick="switchTab('stock')">ស្តុកគ្រឿង</button>
-            <button class="tab" onclick="switchTab('stats')">ស្ថិតិ</button>
+
+        <div class="container">
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab" :class="{ active: activeTab === 'add' }" @click="activeTab = 'add'">
+                    <i class="fas fa-plus"></i> បន្ថែមគ្រឿង
+                </button>
+                <button class="tab" :class="{ active: activeTab === 'stock' }" @click="activeTab = 'stock'">
+                    <i class="fas fa-boxes"></i> ស្តុកគ្រឿង
+                </button>
+                <button class="tab" :class="{ active: activeTab === 'stats' }" @click="activeTab = 'stats'">
+                    <i class="fas fa-chart-bar"></i> ស្ថិតិ
+                </button>
+            </div>
+
+            <!-- Add Part Tab -->
+            <div v-if="activeTab === 'add'" class="tab-content active">
+                <div class="form-card">
+                    <form @submit.prevent="saveItem">
+                        <div class="form-row">
+                            <div>
+                                <label for="company"><i class="fas fa-building"></i> ក្រុមហ៊ុន</label>
+                                <input type="text" id="company" v-model="form.company" required>
+                            </div>
+                            <div>
+                                <label for="productCode"><i class="fas fa-barcode"></i> កូដគ្រឿង</label>
+                                <input type="text" id="productCode" v-model="form.productCode" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div>
+                                <label for="partName"><i class="fas fa-cog"></i> ឈ្មោះគ្រឿង</label>
+                                <input type="text" id="partName" v-model="form.partName" required>
+                            </div>
+                            <div>
+                                <label for="carModel"><i class="fas fa-car-side"></i> ម៉ូដែលឡាន</label>
+                                <input type="text" id="carModel" v-model="form.carModel" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div>
+                                <label for="modelYear"><i class="fas fa-calendar-alt"></i> ឆ្នាំម៉ូដែល</label>
+                                <input type="text" id="modelYear" v-model="form.modelYear" required>
+                            </div>
+                            <div>
+                                <label for="quantity"><i class="fas fa-box"></i> ចំនួន</label>
+                                <input type="number" id="quantity" v-model="form.quantity" min="1" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div>
+                                <label for="buyPrice"><i class="fas fa-dollar-sign"></i> តម្លៃទិញ ($)</label>
+                                <input type="number" id="buyPrice" v-model="form.buyPrice" step="0.01" min="0" required>
+                            </div>
+                            <div>
+                                <label for="sellPrice"><i class="fas fa-tag"></i> តម្លៃលក់ ($)</label>
+                                <input type="number" id="sellPrice" v-model="form.sellPrice" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn">
+                            <i class="fas fa-save"></i> រក្សាទុកគ្រឿង
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Stock Tab -->
+            <div v-if="activeTab === 'stock'" class="tab-content active">
+                <div class="search-box">
+                    <input type="text" v-model="searchQuery" placeholder="ស្វែងរកគ្រឿង...">
+                </div>
+                <div class="inventory-list">
+                    <div v-for="item in filteredInventory" :key="item.id" class="inventory-item">
+                        <div class="item-top">
+                            <div class="item-left">
+                                <div class="item-name">{{ item.partName }}</div>
+                                <div class="item-code">កូដ: {{ item.productCode }} | ក្រុមហ៊ុន: {{ item.company }}</div>
+                                <div class="detail-row">
+                                    <span class="detail-chip">{{ item.carModel }}</span>
+                                    <span class="detail-chip year">{{ item.modelYear }}</span>
+                                    <span class="detail-chip" :class="{ 'low-stock': item.quantity <= 2 }">
+                                        <i class="fas fa-box"></i> {{ item.quantity }}
+                                    </span>
+                                </div>
+                                <div class="detail-company">
+                                    <i class="fas fa-building"></i> {{ item.company }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="price-section">
+                            <div class="price-value buy">
+                                <div>ទិញ</div>
+                                <div>${{ item.buyPrice.toFixed(2) }}</div>
+                            </div>
+                            <div class="price-value sell">
+                                <div>លក់</div>
+                                <div>${{ item.sellPrice.toFixed(2) }}</div>
+                            </div>
+                            <div class="price-value profit">
+                                <div>ចំណេញ</div>
+                                <div>${{ (item.sellPrice - item.buyPrice).toFixed(2) }}</div>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button class="edit" @click="openEdit(item.id)">
+                                <i class="fas fa-edit"></i> កែ
+                            </button>
+                            <button class="delete" @click="deleteItem(item.id)">
+                                <i class="fas fa-trash"></i> លុប
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn export-btn" @click="exportToCSV">
+                    <i class="fas fa-file-export"></i> នាំចេញជា CSV
+                </button>
+            </div>
+
+            <!-- Statistics Tab -->
+            <div v-if="activeTab === 'stats'" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">ទំនិញសរុប</div>
+                        <div class="stat-value">{{ totalItems }}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">តម្លៃទិញសរុប</div>
+                        <div class="stat-value">${{ totalCost.toFixed(2) }}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">ប្រាក់ចំណេញសរុប</div>
+                        <div class="stat-value">${{ totalProfit.toFixed(2) }}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">គ្រឿងស្តុកទាប</div>
+                        <div class="stat-value">{{ lowStockCount }}</div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div id="add-tab" class="tab-content active">
-            <div class="form-card">
-                <form onsubmit="saveItem(event)">
-                    <label for="company">ក្រុមហ៊ុន</label>
-                    <input id="company" required>
-                    <label for="productCode">កូដគ្រឿង</label>
-                    <input id="productCode" required>
-                    <label for="partName">ឈ្មោះគ្រឿង</label>
-                    <input id="partName" required>
-                    <label for="carModel">ប្រភេទ</label>
-                    <input id="carModel" required>
-                    <label for="modelYear">ឆ្នាំម៉ូដែល</label>
-                    <input id="modelYear" required>
-                    <label for="buyPrice">តម្លៃទិញ ($)</label>
-                    <input id="buyPrice" type="number" step="0.01" required>
-                    <label for="sellPrice">តម្លៃលក់ ($)</label>
-                    <input id="sellPrice" type="number" step="0.01" required>
-                    <label for="productImage">រូបភាពគ្រឿង</label>
-                    <input id="productImage" type="file" accept="image/*">
-                    <button type="submit" class="btn">រក្សាទុកគ្រឿង</button>
+
+        <!-- Duplicate Modal -->
+        <div v-if="showDuplicateModal" class="modal active">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-exclamation-triangle"></i> កូដគ្រឿង "{{ duplicateItem?.productCode }}" មានរួចហើយ!</h2>
+                    <button class="close-btn" @click="closeDuplicateModal">&times;</button>
+                </div>
+                <p>តើអ្នកចង់បន្ថែមជាទំនិញថ្មី ឬកែប្រែទំនិញចាស់?</p>
+                <div class="modal-buttons">
+                    <button class="modal-btn-add" @click="addAsNew">
+                        <i class="fas fa-plus"></i> បន្ថែមថ្មី
+                    </button>
+                    <button class="modal-btn-edit" @click="editExisting">
+                        <i class="fas fa-edit"></i> កែប្រែចាស់
+                    </button>
+                    <button class="modal-btn-cancel" @click="closeDuplicateModal">
+                        <i class="fas fa-times"></i> បោះបង់
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Modal -->
+        <div v-if="showEditModal" class="modal active">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-edit"></i> កែប្រែគ្រឿង</h2>
+                    <button class="close-btn" @click="closeEditModal">&times;</button>
+                </div>
+                <form @submit.prevent="updateItem">
+                    <input type="hidden" v-model="editForm.id">
+                    <div class="form-row">
+                        <div>
+                            <label>ក្រុមហ៊ុន</label>
+                            <input type="text" v-model="editForm.company" required>
+                        </div>
+                        <div>
+                            <label>កូដគ្រឿង</label>
+                            <input type="text" v-model="editForm.productCode" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div>
+                            <label>ឈ្មោះគ្រឿង</label>
+                            <input type="text" v-model="editForm.partName" required>
+                        </div>
+                        <div>
+                            <label>ម៉ូដែលឡាន</label>
+                            <input type="text" v-model="editForm.carModel" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div>
+                            <label>ឆ្នាំម៉ូដែល</label>
+                            <input type="text" v-model="editForm.modelYear" required>
+                        </div>
+                        <div>
+                            <label>ចំនួន</label>
+                            <input type="number" v-model="editForm.quantity" min="1" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div>
+                            <label>តម្លៃទិញ ($)</label>
+                            <input type="number" v-model="editForm.buyPrice" step="0.01" min="0" required>
+                        </div>
+                        <div>
+                            <label>តម្លៃលក់ ($)</label>
+                            <input type="number" v-model="editForm.sellPrice" step="0.01" min="0" required>
+                        </div>
+                    </div>
+                    <div class="modal-buttons">
+                        <button type="submit" class="modal-btn-add">
+                            <i class="fas fa-save"></i> រក្សាទុក
+                        </button>
+                        <button type="button" class="modal-btn-cancel" @click="closeEditModal">
+                            <i class="fas fa-times"></i> បោះបង់
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
-        <div id="stock-tab" class="tab-content">
-            <div class="search-box">
-                <input id="searchInput" oninput="searchItems()" placeholder="ស្វែងរកដោយឈ្មោះ ប្រភេទ កូដ...">
-            </div>
-            <a href="#" onclick="exportToCSV()">នាំចេញជា CSV 📄</a>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ល.រ</th>
-                        <th>ឈ្មោះគ្រឿង</th>
-                        <th>ប្រភេទ</th>
-                        <th>ម៉ូដែលឡាន</th>
-                        <th>ឆ្នាំម៉ូដែល</th>
-                        <th>តម្លៃទិញ ($)</th>
-                        <th>តម្លៃលក់ ($)</th>
-                        <th>តម្លៃសរុប ($)</th>
-                        <th>សកម្មភាព</th>
-                    </tr>
-                </thead>
-                <tbody id="stockTableBody"></tbody>
-            </table>
-        </div>
-        <div id="stats-tab" class="tab-content">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h5>ទំនិញសរុប</h5>
-                    <div class="stat-value" id="totalItems">0</div>
-                </div>
-                <div class="stat-card">
-                    <h5>តម្លៃសរុប ($)</h5>
-                    <div class="stat-value" id="totalValue">0.00</div>
-                </div>
-                <div class="stat-card">
-                    <h5>ប្រាក់ចំណេញសរុប ($)</h5>
-                    <div class="stat-value" id="totalProfit">0.00</div>
-                </div>
-                <div class="stat-card">
-                    <h5>គ្រឿងស្តុកទាប</h5>
-                    <div class="stat-value" id="lowStock">0</div>
-                </div>
-            </div>
-        </div>
-        <label class="theme-toggle">
-            <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
-            <span>របៀបងងឹត</span>
-        </label>
     </div>
-    <div id="duplicateModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>កូដគ្រឿង <span id="duplicateCode"></span> មានរួចហើយ!</h2>
-                <button class="close-btn" onclick="closeDuplicateModal()">&times;</button>
-            </div>
-            <p>តើអ្នកចង់បន្ថែមជាទំនិញថ្មី ឬកែប្រែទំនិញចាស់?</p>
-            <div class="modal-buttons">
-                <button class="modal-btn-add" onclick="addAsNew()">បន្ថែមថ្មី</button>
-                <button class="modal-btn-edit" onclick="editExisting()">កែប្រែចាស់</button>
-                <button class="modal-btn-cancel" onclick="closeDuplicateModal()">បោះបង់</button>
-            </div>
-        </div>
-    </div>
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>កែប្រែគ្រឿង</h2>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
-            </div>
-            <form onsubmit="updateItem(event)">
-                <input type="hidden" id="editId">
-                <label for="editCompany">ក្រុមហ៊ុន</label>
-                <input id="editCompany" required>
-                <label for="editProductCode">កូដគ្រឿង</label>
-                <input id="editProductCode" required>
-                <label for="editPartName">ឈ្មោះគ្រឿង</label>
-                <input id="editPartName" required>
-                <label for="editCarModel">ប្រភេទ</label>
-                <input id="editCarModel" required>
-                <label for="editModelYear">ឆ្នាំម៉ូដែល</label>
-                <input id="editModelYear" required>
-                <label for="editBuyPrice">តម្លៃទិញ ($)</label>
-                <input id="editBuyPrice" type="number" step="0.01" required>
-                <label for="editSellPrice">តម្លៃលក់ ($)</label>
-                <input id="editSellPrice" type="number" step="0.01" required>
-                <button type="submit" class="btn">រក្សាទុក</button>
-            </form>
-        </div>
-    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
