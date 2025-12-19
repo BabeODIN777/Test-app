@@ -34,6 +34,9 @@
                 <button class="tab" :class="{ active: activeTab === 'stats' }" @click="activeTab = 'stats'">
                     <i class="fas fa-chart-bar"></i> ស្ថិតិ
                 </button>
+                 <button class="tab" :class="{ active: activeTab === 'bulk' }" @click="activeTab = 'bulk'">
+                     <i class="fas fa-upload"></i> នាំចូល/ចេញ
+                 </button>
             </div>
 
             <!-- Add Part Tab -->
@@ -166,6 +169,56 @@
                 </div>
             </div>
         </div>
+         <!-- Bulk Operations Tab -->
+            <div v-if="activeTab === 'bulk'" class="tab-content active">
+                <div class="bulk-actions">
+                <h3><i class="fas fa-file-import"></i> នាំចូលគ្រឿងពីឯកសារ CSV</h3>
+                <p>អាចនាំចូលគ្រឿងច្រើនក្នុងពេលតែមួយដោយប្រើឯកសារ CSV</p>
+        
+        <label class="file-label" for="csvFile">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <div>ចុចដើម្បីជ្រើសរើសឯកសារ CSV</div>
+            <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">ឬទាញឯកសារទម្លាក់នៅទីនេះ</div>
+        </label>
+        <input type="file" id="csvFile" class="file-input" accept=".csv" @change="handleImport">
+        
+        <div class="bulk-buttons">
+            <button class="bulk-btn template-btn" @click="downloadTemplate">
+                <i class="fas fa-file-download"></i> ទាញយកគំរូ
+            </button>
+            <button class="bulk-btn export-btn-bulk" @click="exportAllToCSV">
+                <i class="fas fa-file-export"></i> នាំចេញទាំងអស់
+            </button>
+        </div>
+        
+        <div v-if="importResults" class="import-results">
+            <h4><i class="fas fa-clipboard-check"></i> លទ្ធផលនាំចូល</h4>
+            <p class="result-success">បានដាក់ចូលដោយជោគជ័យ: {{ importResults.success }}/{{ importResults.total }}</p>
+            <p v-if="importResults.errors.length" class="result-error">
+                មានកំហុស: {{ importResults.errors.length }}
+            </p>
+            <div v-for="(error, idx) in importResults.errors" :key="idx" class="result-warning">
+                {{ error }}
+            </div>
+            <button @click="importResults = null" style="margin-top: 10px;">
+                <i class="fas fa-times"></i> លុបលទ្ធផល
+            </button>
+        </div>
+    </div>
+    
+    <div class="form-card">
+        <h3><i class="fas fa-info-circle"></i> សេចក្តីណែនាំ</h3>
+        <ol style="margin-left: 20px; margin-top: 10px;">
+            <li>ទាញយកឯកសារគំរូដោយចុចប៊ូតុង "ទាញយកគំរូ"</li>
+            <li>បំពេញព័ត៌មានគ្រឿងទំនិញក្នុងឯកសារ CSV</li>
+            <li>ជ្រើសរើសឯកសារដោយចុចត្រង់ផ្ទៃពណ៌ប្រផេះ</li>
+            <li>គ្រឿងនឹងត្រូវបានដាក់ចូលដោយស្វ័យប្រវត្តិ</li>
+        </ol>
+        <p style="margin-top: 15px; font-style: italic;">
+            <i class="fas fa-lightbulb"></i> ព័ត៌មាន: ប្រសិនបើកូដគ្រឿងមានរួចហើយ វានឹងកែប្រែទិន្នន័យចាស់
+            </p>
+          </div>
+         </div>
 
         <!-- Duplicate Modal -->
         <div v-if="showDuplicateModal" class="modal active">
