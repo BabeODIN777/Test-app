@@ -450,3 +450,163 @@ input:focus {
 .text-center { text-align: center; }
 .mt-2 { margin-top: 8px; }
 .mb-2 { margin-bottom: 8px; }
+
+/* QR Code Button */
+.qr-section {
+  margin-top: 10px;
+}
+
+.qr-btn {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.qr-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* QR Modal */
+.qr-modal .modal-content {
+  max-width: 450px;
+}
+
+.qr-container {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.qr-code {
+  width: 200px;
+  height: 200px;
+  background: white;
+  padding: 10px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-code canvas {
+  border-radius: 5px;
+}
+
+.qr-info {
+  flex: 1;
+}
+
+.qr-info p {
+  margin: 8px 0;
+  padding: 8px;
+  background: var(--bg-card);
+  border-radius: 6px;
+}
+
+.qr-info strong {
+  color: var(--accent-green);
+  margin-right: 8px;
+}
+
+/* Bulk Operations Tab */
+.bulk-actions {
+  background: var(--bg-card);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.bulk-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.bulk-btn {
+  padding: 15px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform 0.2s;
+}
+
+.bulk-btn:hover {
+  transform: translateY(-2px);
+}
+
+.import-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.export-btn-bulk {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.template-btn {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-label {
+  display: block;
+  text-align: center;
+  padding: 20px;
+  border: 2px dashed var(--border-input);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.file-label:hover {
+  border-color: var(--accent-green);
+  background: var(--bg-input);
+}
+
+.file-label i {
+  font-size: 48px;
+  color: var(--accent-green);
+  margin-bottom: 10px;
+}
+
+/* Import Results */
+.import-results {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 10px;
+  background: var(--bg-price);
+}
+
+.result-success {
+  color: var(--accent-green);
+}
+
+.result-error {
+  color: var(--accent-red);
+}
+
+.result-warning {
+  color: var(--accent-yellow);
+}
