@@ -261,6 +261,7 @@ createApp({
 
         const nextTick = () => new Promise(resolve => setTimeout(resolve, 50));
 
+        // ==================== UPDATED QR CODE FUNCTIONS ====================
         const generateQR = async (item) => {
             qrItem.value = item;
             currentQRData.value = item;
@@ -275,49 +276,81 @@ createApp({
                 return;
             }
             
+            // Clear previous QR code
             qrContainer.innerHTML = '';
             
             // Check if QRCode library is available
             if (typeof QRCode === 'undefined') {
-                console.error('QRCode library not available');
-                // Create a simple fallback
-                createSimpleQR(qrContainer, item);
+                console.error('QRCode library not loaded!');
+                alert('QR Code library failed to load. Please check the console and refresh.');
+                createSimplePlaceholder(qrContainer, item);
                 return;
             }
             
-            // Use a simple format
-            const qrText = `${item.productCode}|${item.partName}|${item.carModel}|$${item.sellPrice}`;
+            // Format data for QR code - keep it simple for scanning
+            const qrText = `AUTO PARTS|${item.productCode}|${item.partName}|${item.carModel}|${item.modelYear}|$${item.sellPrice}`;
             
-            // Create canvas element
-            const canvas = document.createElement('canvas');
-            canvas.width = 250;
-            canvas.height = 250;
-            qrContainer.appendChild(canvas);
-            
-            // Generate QR code
+            // Generate QR code using qrcodejs library
             try {
-                QRCode.toCanvas(canvas, qrText, {
+                // Create QRCode instance - this automatically generates the QR in the container
+                const qr = new QRCode(qrContainer, {
+                    text: qrText,
                     width: 250,
-                    margin: 1,
-                    color: {
-                        dark: '#000000',
-                        light: '#FFFFFF'
-                    }
-                }, function(error) {
-                    if (error) {
-                        console.error('QR Code generation failed:', error);
-                        createSimpleQR(qrContainer, item);
-                    } else {
-                        qrCodeInstance.value = canvas;
-                    }
+                    height: 250,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.H // High error correction
                 });
+                
+                // Store the canvas for download/print
+                const canvas = qrContainer.querySelector('canvas');
+                if (canvas) {
+                    qrCodeInstance.value = canvas;
+                    console.log('QR code generated successfully!');
+                    
+                    // Test if it's a real QR code
+                    testQRCode(canvas);
+                } else {
+                    console.warn('Canvas not found, using fallback');
+                    createSimplePlaceholder(qrContainer, item);
+                }
+                
             } catch (error) {
-                console.error('QR Code error:', error);
-                createSimpleQR(qrContainer, item);
+                console.error('QR Code generation failed:', error);
+                createSimplePlaceholder(qrContainer, item);
             }
         };
 
-        const createSimpleQR = (container, item) => {
+        // Test function to verify QR code is real
+        const testQRCode = (canvas) => {
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            // Count black pixels
+            let blackPixels = 0;
+            for (let i = 0; i < data.length; i += 4) {
+                if (data[i] < 128 && data[i + 1] < 128 && data[i + 2] < 128) {
+                    blackPixels++;
+                }
+            }
+            
+            const totalPixels = data.length / 4;
+            const blackRatio = (blackPixels / totalPixels) * 100;
+            
+            console.log('QR Code Quality Check:');
+            console.log(`- Total pixels: ${totalPixels}`);
+            console.log(`- Black pixels: ${blackPixels}`);
+            console.log(`- Black pixel ratio: ${blackRatio.toFixed(2)}%`);
+            
+            // A real QR code typically has 20-40% black pixels
+            if (blackRatio < 10) {
+                console.warn('Warning: Low black pixel ratio - QR may not scan well');
+            }
+        };
+
+        // Simple placeholder (only used if QR library fails)
+        const createSimplePlaceholder = (container, item) => {
             container.innerHTML = '';
             const canvas = document.createElement('canvas');
             canvas.width = 250;
@@ -332,26 +365,19 @@ createApp({
             
             // Black border
             ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(10, 10, 230, 230);
+            ctx.lineWidth = 2;
+            ctx.strokeRect(5, 5, 240, 240);
             
-            // Draw simple pattern
-            ctx.fillStyle = '#000000';
-            
-            // Position markers
-            ctx.fillRect(30, 30, 50, 50);
-            ctx.fillRect(170, 30, 50, 50);
-            ctx.fillRect(30, 170, 50, 50);
-            
-            // Text
-            ctx.font = 'bold 16px Arial';
+            // Error message
+            ctx.fillStyle = '#FF0000';
+            ctx.font = 'bold 18px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('AUTO PARTS', 125, 70);
+            ctx.fillText('QR CODE ERROR', 125, 120);
             
-            ctx.font = '12px Arial';
-            ctx.fillText(item.productCode, 125, 90);
-            ctx.fillText(item.partName.substring(0, 20), 125, 210);
-            ctx.fillText(`$${item.sellPrice}`, 125, 230);
+            ctx.fillStyle = '#000000';
+            ctx.font = '14px Arial';
+            ctx.fillText('Library not loaded', 125, 150);
+            ctx.fillText('Check console and refresh', 125, 170);
             
             qrCodeInstance.value = canvas;
         };
@@ -394,7 +420,7 @@ createApp({
                     <style>
                         body { font-family: Arial; padding: 20px; text-align: center; }
                         h2 { color: #333; }
-                        .info { margin: 20px 0; text-align: left; }
+                        .info { margin: 20px 0; text-align: left; display: inline-block; }
                         .info p { margin: 5px 0; }
                     </style>
                 </head>
@@ -404,10 +430,13 @@ createApp({
                         <img src="${qrImageData}" width="200">
                     </div>
                     <div class="info">
-                        <p><strong>Code:</strong> ${currentQRData.value.productCode}</p>
-                        <p><strong>Car:</strong> ${currentQRData.value.carModel}</p>
-                        <p><strong>Stock:</strong> ${currentQRData.value.quantity}</p>
-                        <p><strong>Price:</strong> $${currentQRData.value.sellPrice.toFixed(2)}</p>
+                        <p><strong>ឈ្មោះគ្រឿង:</strong> ${currentQRData.value.partName}</p>
+                        <p><strong>កូដ:</strong> ${currentQRData.value.productCode}</p>
+                        <p><strong>ឡាន:</strong> ${currentQRData.value.carModel}</p>
+                        <p><strong>ឆ្នាំ:</strong> ${currentQRData.value.modelYear}</p>
+                        <p><strong>តម្លៃលក់:</strong> $${currentQRData.value.sellPrice.toFixed(2)}</p>
+                        <p><strong>ស្តុក:</strong> ${currentQRData.value.quantity}</p>
+                        <p><strong>ក្រុមហ៊ុន:</strong> ${currentQRData.value.company}</p>
                     </div>
                     <script>
                         window.onload = function() {
@@ -425,6 +454,7 @@ createApp({
         const closeQRModal = () => {
             showQRModal.value = false;
             qrItem.value = null;
+            qrCodeInstance.value = null;
         };
 
         const applyFilters = () => {
