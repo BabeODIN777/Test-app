@@ -43,23 +43,67 @@ createApp({
         const qrCodeInstance = ref(null);
         const currentQRData = ref(null);
 
-        const filteredInventory = computed(() => {
-            if (!searchQuery.value.trim()) return inventory.value;
-            const query = searchQuery.value.toLowerCase();
-            return inventory.value.filter(item =>
-                item.partName.toLowerCase().includes(query) ||
-                item.carModel.toLowerCase().includes(query) ||
-                item.modelYear.toLowerCase().includes(query) ||
-                item.company.toLowerCase().includes(query) ||
-                item.productCode.toLowerCase().includes(query)
-            );
+        // ==================== SEARCH FILTERS STATE ====================
+        const selectedCompany = ref('');
+        const selectedCarModel = ref('');
+        const selectedYear = ref('');
+
+        // ==================== COMPUTED PROPERTIES ====================
+        const uniqueCompanies = computed(() => {
+            const companies = new Set(inventory.value.map(item => item.company));
+            return Array.from(companies).filter(c => c).sort();
         });
 
+        const uniqueCarModels = computed(() => {
+            const models = new Set(inventory.value.map(item => item.carModel));
+            return Array.from(models).filter(m => m).sort();
+        });
+
+        const uniqueYears = computed(() => {
+            const years = new Set(inventory.value.map(item => item.modelYear));
+            return Array.from(years).filter(y => y).sort((a, b) => b.localeCompare(a));
+        });
+
+        const hasActiveFilters = computed(() => {
+            return selectedCompany.value || selectedCarModel.value || selectedYear.value;
+        });
+
+        const filteredInventory = computed(() => {
+            let filtered = inventory.value;
+            
+            if (searchQuery.value.trim()) {
+                const query = searchQuery.value.toLowerCase();
+                filtered = filtered.filter(item =>
+                    item.partName.toLowerCase().includes(query) ||
+                    item.carModel.toLowerCase().includes(query) ||
+                    item.modelYear.toLowerCase().includes(query) ||
+                    item.company.toLowerCase().includes(query) ||
+                    item.productCode.toLowerCase().includes(query)
+                );
+            }
+            
+            if (selectedCompany.value) {
+                filtered = filtered.filter(item => item.company === selectedCompany.value);
+            }
+            
+            if (selectedCarModel.value) {
+                filtered = filtered.filter(item => item.carModel === selectedCarModel.value);
+            }
+            
+            if (selectedYear.value) {
+                filtered = filtered.filter(item => item.modelYear === selectedYear.value);
+            }
+            
+            return filtered;
+        });
+
+        const filteredCount = computed(() => filteredInventory.value.length);
         const totalItems = computed(() => inventory.value.length);
         const totalCost = computed(() => inventory.value.reduce((sum, item) => sum + item.buyPrice, 0));
         const totalProfit = computed(() => inventory.value.reduce((sum, item) => sum + (item.sellPrice - item.buyPrice), 0));
         const lowStockCount = computed(() => inventory.value.filter(item => item.quantity <= 2).length);
 
+        // ==================== FUNCTIONS ====================
         const toggleTheme = () => {
             document.body.classList.toggle('light-mode', isLightMode.value);
             localStorage.setItem('theme', isLightMode.value ? 'light' : 'dark');
@@ -364,6 +408,18 @@ createApp({
             qrItem.value = null;
         };
 
+        const applyFilters = () => {
+            // Filters are automatically applied via computed property
+            console.log('Filters applied');
+        };
+
+        const clearFilters = () => {
+            selectedCompany.value = '';
+            selectedCarModel.value = '';
+            selectedYear.value = '';
+            searchQuery.value = '';
+        };
+
         const downloadTemplate = () => {
             const headers = ['company', 'productCode', 'partName', 'carModel', 'modelYear', 'quantity', 'buyPrice', 'sellPrice'];
             const example = ['Toyota', 'TYT-2023-BRK', 'Brake Pad', 'Camry', '2023', '10', '25.50', '45.99'];
@@ -485,7 +541,15 @@ createApp({
             qrItem,
             bulkTab,
             importResults,
+            selectedCompany,
+            selectedCarModel,
+            selectedYear,
+            uniqueCompanies,
+            uniqueCarModels,
+            uniqueYears,
+            hasActiveFilters,
             filteredInventory,
+            filteredCount,
             totalItems,
             totalCost,
             totalProfit,
@@ -505,6 +569,8 @@ createApp({
             downloadQR,
             printQR,
             closeQRModal,
+            applyFilters,
+            clearFilters,
             downloadTemplate,
             handleImport,
             exportAllToCSV
