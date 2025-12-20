@@ -367,37 +367,38 @@
         </div>
 
         <!-- QR Modal -->
-        <div v-if="showQRModal" class="modal active">
-            <div class="modal-content qr-modal">
-                <div class="modal-header">
-                    <h2><i class="fas fa-qrcode"></i> QR Code for {{ qrItem.partName }}</h2>
-                    <button class="close-btn" @click="closeQRModal">&times;</button>
-                </div>
-                <div class="qr-container">
-                    <div class="qr-code">
-                        <!-- QR will be generated here -->
-                    </div>
-                    <div class="qr-info">
-                        <p><strong>Part:</strong> {{ qrItem.partName }}</p>
-                        <p><strong>Code:</strong> {{ qrItem.productCode }}</p>
-                        <p><strong>Car:</strong> {{ qrItem.carModel }} ({{ qrItem.modelYear }})</p>
-                        <p><strong>Price:</strong> ${{ qrItem.sellPrice.toFixed(2) }}</p>
-                        <p><strong>Stock:</strong> {{ qrItem.quantity }}</p>
-                    </div>
-                </div>
-                <div class="modal-buttons">
-                    <button class="modal-btn-add" @click="downloadQR">
-                        <i class="fas fa-download"></i> Download
-                    </button>
-                    <button class="modal-btn-edit" @click="printQR">
-                        <i class="fas fa-print"></i> Print
-                    </button>
-                    <button class="modal-btn-cancel" @click="closeQRModal">
-                        <i class="fas fa-times"></i> Close
-                    </button>
-                </div>
+<div v-if="showQRModal" class="modal active">
+    <div class="modal-content qr-modal">
+        <div class="modal-header">
+            <h2><i class="fas fa-qrcode"></i> QR Code for {{ qrItem.partName }}</h2>
+            <button class="close-btn" @click="closeQRModal">&times;</button>
+        </div>
+        <div class="qr-container">
+            <div class="qr-code">
+                <!-- QR will be generated here -->
+            </div>
+            <div class="qr-info">
+                <p><strong>ឈ្មោះគ្រឿង:</strong> {{ qrItem.partName }}</p>
+                <p><strong>កូដ:</strong> {{ qrItem.productCode }}</p>
+                <p><strong>ឡាន:</strong> {{ qrItem.carModel }} ({{ qrItem.modelYear }})</p>
+                <p><strong>តម្លៃលក់:</strong> ${{ qrItem.sellPrice.toFixed(2) }}</p>
+                <p><strong>ស្តុក:</strong> {{ qrItem.quantity }}</p>
+                <p><strong>ក្រុមហ៊ុន:</strong> {{ qrItem.company }}</p>
             </div>
         </div>
+        <div class="modal-buttons">
+            <button class="modal-btn-add" @click="downloadQR">
+                <i class="fas fa-download"></i> ទាញយក
+            </button>
+            <button class="modal-btn-edit" @click="printQR">
+                <i class="fas fa-print"></i> បោះពុម្ព
+            </button>
+            <button class="modal-btn-cancel" @click="closeQRModal">
+                <i class="fas fa-times"></i> បិទ
+            </button>
+        </div>
+    </div>
+</div>
 
     </div> <!-- End of #app -->
 
