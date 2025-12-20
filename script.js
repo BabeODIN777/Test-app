@@ -17,6 +17,7 @@ if (typeof QRCode !== 'undefined') {
     };
     document.head.appendChild(script);
 }
+
 const { createApp, ref, computed, onMounted } = Vue;
 
 createApp({
@@ -281,192 +282,110 @@ createApp({
         const nextTick = () => new Promise(resolve => setTimeout(resolve, 50));
 
         const generateQR = async (item) => {
-    qrItem.value = item;
-    currentQRData.value = item;
-    showQRModal.value = true;
-    
-    // Wait a bit for the modal to fully render
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    const qrContainer = document.querySelector('.qr-code');
-    if (!qrContainer) {
-        console.error('QR container not found!');
-        return;
-    }
-    
-    qrContainer.innerHTML = '';
-    
-    // Create a simpler QR code text format that's more scannable
-    // Using pipe separator for better compatibility
-    const qrText = `AUTO PARTS|${item.productCode}|${item.partName}|${item.carModel}|${item.modelYear}|$${item.sellPrice}|${item.quantity}|${item.company}`;
-    
-    // Create canvas element
-    const canvas = document.createElement('canvas');
-    canvas.width = 250;
-    canvas.height = 250;
-    qrContainer.appendChild(canvas);
-    
-    // Generate QR code
-    if (typeof QRCode !== 'undefined') {
-        try {
-            QRCode.toCanvas(canvas, qrText, {
-                width: 250,
-                margin: 2,
-                color: {
-                    dark: '#000000',
-                    light: '#FFFFFF'
-                },
-                errorCorrectionLevel: 'M' // Medium error correction
-            }, function(error) {
-                if (error) {
-                    console.error('QR Code generation failed:', error);
-                    // Create a simple QR code as fallback
-                    createSimpleQR(canvas, item);
-                }
+            console.log('Generating QR for:', item);
+            console.log('QRCode available:', typeof QRCode !== 'undefined');
+            
+            if (typeof QRCode === 'undefined') {
+                alert('QR Code library not loaded. Please refresh the page.');
+                return;
+            }
+            
+            qrItem.value = item;
+            currentQRData.value = item;
+            showQRModal.value = true;
+            
+            // Wait for modal to render
+            await nextTick();
+            
+            const qrContainer = document.querySelector('.qr-code');
+            console.log('QR container found:', !!qrContainer);
+            
+            if (!qrContainer) {
+                console.error('QR container not found!');
+                return;
+            }
+            
+            qrContainer.innerHTML = '';
+            
+            // Use a very simple format for maximum compatibility
+            const qrText = `PART:${item.partName}|CODE:${item.productCode}|CAR:${item.carModel}|PRICE:$${item.sellPrice}|QTY:${item.quantity}`;
+            console.log('QR Text:', qrText);
+            
+            // Create canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = 250;
+            canvas.height = 250;
+            qrContainer.appendChild(canvas);
+            
+            // Generate QR
+            try {
+                QRCode.toCanvas(canvas, qrText, {
+                    width: 250,
+                    margin: 1,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    },
+                    errorCorrectionLevel: 'L' // Lowest error correction (more data, simpler code)
+                }, function(error) {
+                    if (error) {
+                        console.error('QR generation error:', error);
+                        // Create a simple QR code as fallback
+                        createSimpleQR(canvas, item);
+                    } else {
+                        console.log('QR code generated successfully');
+                        qrCodeInstance.value = canvas;
+                    }
+                });
+            } catch (error) {
+                console.error('QR code generation failed:', error);
+                // Create a basic pattern as fallback
+                createSimpleQR(canvas, item);
                 qrCodeInstance.value = canvas;
-            });
-        } catch (error) {
-            console.error('QR Code error:', error);
-            createSimpleQR(canvas, item);
-            qrCodeInstance.value = canvas;
-        }
-    } else {
-        console.warn('QRCode library not loaded, using fallback');
-        createSimpleQR(canvas, item);
-        qrCodeInstance.value = canvas;
-    }
-};
-
-// Helper function for simple QR when library fails
-const createSimpleQR = (canvas, item) => {
-    const ctx = canvas.getContext('2d');
-    
-    // White background
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, 250, 250);
-    
-    // Black border for contrast
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(10, 10, 230, 230);
-    
-    // Draw QR-like pattern
-    ctx.fillStyle = '#000000';
-    
-    // Draw position markers
-    ctx.fillRect(30, 30, 50, 50);
-    ctx.fillRect(170, 30, 50, 50);
-    ctx.fillRect(30, 170, 50, 50);
-    
-    // Draw alignment patterns
-    for (let i = 0; i < 5; i++) {
-        for (let j = 0; j < 5; j++) {
-            if ((i + j) % 2 === 0) {
-                ctx.fillRect(110 + i * 5, 110 + j * 5, 5, 5);
             }
-        }
-    }
-    
-    // Draw text
-    ctx.fillStyle = '#000000';
-    ctx.font = 'bold 16px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('AUTO PARTS', 125, 70);
-    
-    ctx.font = '12px Arial';
-    ctx.fillText(item.productCode, 125, 90);
-    ctx.fillText(item.partName.substring(0, 20), 125, 210);
-    ctx.fillText(`$${item.sellPrice} | Stock: ${item.quantity}`, 125, 230);
-};
-
-        const generateQRCodeCanvas = (data, container) => {
-    container.innerHTML = '';
-    
-    const canvas = document.createElement('canvas');
-    container.appendChild(canvas);
-    
-    if (typeof QRCode !== 'undefined') {
-        try {
-            // Create QR code with proper structure
-            const qrText = `AUTO PARTS\n\nឈ្មោះ: ${data.partName}\nកូដ: ${data.productCode}\nឡាន: ${data.carModel} (${data.modelYear})\nតម្លៃ: $${data.sellPrice}\nស្តុក: ${data.quantity}\nក្រុមហ៊ុន: ${data.company}`;
             
-            QRCode.toCanvas(canvas, qrText, {
-                width: 250,
-                margin: 2,
-                color: {
-                    dark: '#000000',
-                    light: '#FFFFFF'
-                },
-                errorCorrectionLevel: 'H' // Higher error correction for better scanning
-            }, function(error) {
-                if (error) {
-                    console.warn('QR Code generation error:', error);
-                    // Try with simpler text
-                    const simpleText = `Part:${data.partName}|Code:${data.productCode}|Price:$${data.sellPrice}`;
-                    QRCode.toCanvas(canvas, simpleText, {
-                        width: 250,
-                        margin: 2,
-                        color: { dark: '#000000', light: '#FFFFFF' }
-                    });
+            // Helper function for simple QR when library fails
+            const createSimpleQR = (canvas, item) => {
+                const ctx = canvas.getContext('2d');
+                
+                // White background
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, 250, 250);
+                
+                // Black border for contrast
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(10, 10, 230, 230);
+                
+                // Draw QR-like pattern
+                ctx.fillStyle = '#000000';
+                
+                // Draw position markers
+                ctx.fillRect(30, 30, 50, 50);
+                ctx.fillRect(170, 30, 50, 50);
+                ctx.fillRect(30, 170, 50, 50);
+                
+                // Draw alignment patterns
+                for (let i = 0; i < 5; i++) {
+                    for (let j = 0; j < 5; j++) {
+                        if ((i + j) % 2 === 0) {
+                            ctx.fillRect(110 + i * 5, 110 + j * 5, 5, 5);
+                        }
+                    }
                 }
-            });
-            
-            qrCodeInstance.value = canvas;
-        } catch (error) {
-            console.error('QR Code generation failed:', error);
-            drawFallbackQR(canvas.getContext('2d'), data);
-            qrCodeInstance.value = canvas;
-        }
-    } else {
-        console.warn('QRCode library not loaded');
-        drawFallbackQR(canvas.getContext('2d'), data);
-        qrCodeInstance.value = canvas;
-    }
-};
-
-        const createSimpleQR = (ctx, data) => {
-    const canvas = ctx.canvas;
-    canvas.width = 250;
-    canvas.height = 250;
-    
-    // White background
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Black border for contrast
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
-    
-    // Draw simple QR-like pattern
-    ctx.fillStyle = '#000000';
-    
-    // Position markers (like real QR codes)
-    ctx.fillRect(20, 20, 50, 50);
-    ctx.fillRect(180, 20, 50, 50);
-    ctx.fillRect(20, 180, 50, 50);
-    
-    // Simple data representation
-    ctx.font = 'bold 14px Arial';
-    ctx.fillStyle = '#000000';
-    ctx.textAlign = 'center';
-    ctx.fillText('AUTO PARTS', canvas.width/2, 130);
-    
-    ctx.font = '12px Arial';
-    ctx.fillText(`Code: ${data.productCode}`, canvas.width/2, 150);
-    ctx.fillText(`${data.partName}`, canvas.width/2, 170);
-    ctx.fillText(`Stock: ${data.quantity}`, canvas.width/2, 190);
-    
-    // Draw grid pattern
-    ctx.fillStyle = '#000000';
-    for(let i = 0; i < 10; i++) {
-        for(let j = 0; j < 10; j++) {
-            if((i + j) % 3 === 0) {
-                ctx.fillRect(100 + i * 5, 80 + j * 5, 3, 3);
-            }
-        }
-    }
-};
+                
+                // Draw text
+                ctx.fillStyle = '#000000';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('AUTO PARTS', 125, 70);
+                
+                ctx.font = '12px Arial';
+                ctx.fillText(item.productCode, 125, 90);
+                ctx.fillText(item.partName.substring(0, 20), 125, 210);
+                ctx.fillText(`$${item.sellPrice} | Stock: ${item.quantity}`, 125, 230);
+            };
+        };
 
         const downloadQR = () => {
             if (!qrCodeInstance.value) {
