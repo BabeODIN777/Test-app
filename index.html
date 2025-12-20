@@ -26,8 +26,17 @@
     
     <!-- Vue.js -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <!-- Add this line after the Vue.js script -->
+    
+    <!-- QRCode library - Primary source -->
     <script src="https://unpkg.com/qrcode@1.5.0/build/qrcode.min.js"></script>
+    
+    <!-- QRCode library - Backup source (loads if primary fails) -->
+    <script>
+        if (typeof QRCode === 'undefined') {
+            console.log('Primary QRCode failed, loading backup...');
+            document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"><\/script>');
+        }
+    </script>
 </head>
 <body>
     <div id="app">
