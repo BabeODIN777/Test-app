@@ -27,14 +27,23 @@
     <!-- Vue.js -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     
-    <!-- QRCode library - Primary source -->
-    <script src="https://unpkg.com/qrcode@1.5.0/build/qrcode.min.js"></script>
-    
-    <!-- QRCode library - Backup source (loads if primary fails) -->
+    <!-- QRCode library with multiple fallbacks -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script>
+        // If first CDN fails, try another
         if (typeof QRCode === 'undefined') {
-            console.log('Primary QRCode failed, loading backup...');
-            document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"><\/script>');
+            console.log('First QRCode failed, trying fallback...');
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/qrcode@1.5.0/build/qrcode.min.js';
+            script.onload = function() {
+                console.log('QRCode loaded from fallback');
+            };
+            script.onerror = function() {
+                console.error('All QRCode CDNs failed');
+            };
+            document.head.appendChild(script);
+        } else {
+            console.log('QRCode loaded successfully');
         }
     </script>
 </head>
