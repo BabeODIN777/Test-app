@@ -78,6 +78,9 @@
                  <button class="tab" :class="{ active: activeTab === 'bulk' }" @click="activeTab = 'bulk'">
                      <i class="fas fa-upload"></i> នាំចូល/ចេញ
                  </button>
+                <button class="tab" :class="{ active: activeTab === 'invoice' }" @click="activeTab = 'invoice'; createNewInvoice()">
+    <i class="fas fa-file-invoice-dollar"></i> វិក័យប័ត្រ
+</button>
             </div>
 
             <!-- Add Part Tab -->
@@ -285,6 +288,276 @@
                         </button>
                     </div>
                 </div>
+                <!-- Invoice Tab -->
+<div v-if="activeTab === 'invoice'" class="tab-content active">
+    <div class="invoice-controls">
+        <!-- Invoice Header -->
+        <div class="invoice-header">
+            <h3><i class="fas fa-file-invoice-dollar"></i> បង្កើតវិក័យប័ត្រ</h3>
+            <div class="invoice-header-actions">
+                <button class="btn" @click="createNewInvoice">
+                    <i class="fas fa-plus"></i> វិក័យប័ត្រថ្មី
+                </button>
+                <button class="btn" @click="saveInvoiceToHistory" :disabled="invoice.items.length === 0">
+                    <i class="fas fa-save"></i> រក្សាទុក
+                </button>
+            </div>
+        </div>
+
+        <!-- Customer Details -->
+        <div class="customer-details form-card">
+            <h4><i class="fas fa-user"></i> ព័ត៌មានអតិថិជន</h4>
+            <div class="form-row">
+                <div>
+                    <label for="customerName">ឈ្មោះអតិថិជន *</label>
+                    <input type="text" id="customerName" v-model="invoice.customerName" required placeholder="បញ្ចូលឈ្មោះអតិថិជន">
+                </div>
+                <div>
+                    <label for="invoiceDate">កាលបរិច្ឆេទ</label>
+                    <input type="date" id="invoiceDate" v-model="invoice.date">
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label for="customerPhone">លេខទូរស័ព្ទ</label>
+                    <input type="tel" id="customerPhone" v-model="invoice.customerPhone" placeholder="លេខទូរស័ព្ទ">
+                </div>
+                <div>
+                    <label for="invoiceNumber">លេខវិក័យប័ត្រ</label>
+                    <input type="text" id="invoiceNumber" :value="'INV-' + invoice.id" readonly>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Items Section -->
+        <div class="add-items-section form-card">
+            <h4><i class="fas fa-cart-plus"></i> បន្ថែមគ្រឿងក្នុងវិក័យប័ត្រ</h4>
+            
+            <!-- Method 1: Search Inventory Items -->
+            <div class="add-method">
+                <div class="method-header">
+                    <h5><i class="fas fa-search"></i> ស្វែងរកគ្រឿងពីស្តុក</h5>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label for="itemSearch">ស្វែងរកគ្រឿង</label>
+                        <input type="text" id="itemSearch" v-model="itemSearch" 
+                               @input="searchItemsForInvoice" 
+                               placeholder="ស្វែងរកតាមកូដ ឬឈ្មោះគ្រឿង...">
+                    </div>
+                    <div>
+                        <label>បរិមាណ</label>
+                        <input type="number" v-model="selectedInventoryItem.quantity" min="1" value="1">
+                    </div>
+                    <div>
+                        <label>&nbsp;</label>
+                        <button class="btn" @click="addInventoryItem" :disabled="!selectedSearchItem">
+                            <i class="fas fa-plus"></i> បន្ថែមពីស្តុក
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search Results -->
+                <div v-if="searchResults.length > 0" class="search-results">
+                    <div v-for="item in searchResults" :key="item.id" 
+                         class="search-result-item" 
+                         :class="{ selected: selectedSearchItem?.id === item.id }"
+                         @click="selectSearchItem(item)">
+                        <div class="result-info">
+                            <div class="result-name">{{ item.partName }}</div>
+                            <div class="result-details">
+                                <span class="result-code">{{ item.productCode }}</span>
+                                <span class="result-price">${{ item.sellPrice.toFixed(2) }}</span>
+                                <span class="result-stock">ស្តុក: {{ item.quantity }}</span>
+                            </div>
+                        </div>
+                        <div class="result-action">
+                            <i class="fas fa-check" v-if="selectedSearchItem?.id === item.id"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Method 2: Add Manual Item -->
+            <div class="add-method">
+                <div class="method-header">
+                    <h5><i class="fas fa-edit"></i> បន្ថែមគ្រឿងដោយដៃ</h5>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label for="manualItemName">ឈ្មោះគ្រឿង *</label>
+                        <input type="text" id="manualItemName" v-model="manualItem.name" placeholder="ឈ្មោះគ្រឿង">
+                    </div>
+                    <div>
+                        <label for="manualItemPrice">តម្លៃ ($)</label>
+                        <input type="number" id="manualItemPrice" v-model="manualItem.price" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label for="manualItemQuantity">បរិមាណ</label>
+                        <input type="number" id="manualItemQuantity" v-model="manualItem.quantity" min="1" value="1">
+                    </div>
+                    <div>
+                        <label>&nbsp;</label>
+                        <button class="btn" @click="addManualItem" :disabled="!manualItem.name || !manualItem.price">
+                            <i class="fas fa-plus-circle"></i> បន្ថែមដោយដៃ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoice Items List -->
+        <div v-if="invoice.items.length > 0" class="invoice-items">
+            <h4><i class="fas fa-list"></i> គ្រឿងក្នុងវិក័យប័ត្រ ({{ invoice.items.length }})</h4>
+            <div class="invoice-table">
+                <div class="invoice-table-header">
+                    <div>ល.រ</div>
+                    <div>ពណ៌នា</div>
+                    <div>បរិមាណ</div>
+                    <div>តម្លៃឯកតា</div>
+                    <div>សរុប</div>
+                    <div>សកម្មភាព</div>
+                </div>
+                <div v-for="(item, index) in invoice.items" :key="index" class="invoice-table-row">
+                    <div>{{ index + 1 }}</div>
+                    <div>
+                        <div class="item-desc">{{ item.description }}</div>
+                        <div v-if="item.code" class="item-code">កូដ: {{ item.code }}</div>
+                        <div v-if="item.type" class="item-type">ប្រភេទ: {{ item.type }}</div>
+                    </div>
+                    <div>
+                        <input type="number" v-model="item.quantity" min="1" 
+                               @change="updateInvoiceTotal" class="quantity-input">
+                    </div>
+                    <div>
+                        <input type="number" v-model="item.unitPrice" step="0.01" min="0" 
+                               @change="updateInvoiceTotal" class="price-input">
+                    </div>
+                    <div class="item-total">${{ (item.quantity * item.unitPrice).toFixed(2) }}</div>
+                    <div>
+                        <button class="delete-small" @click="removeInvoiceItem(index)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Invoice Totals -->
+            <div class="invoice-totals">
+                <div class="total-row">
+                    <span>សរុបរង</span>
+                    <span>${{ invoice.subtotal.toFixed(2) }}</span>
+                </div>
+                <div class="total-row grand-total">
+                    <span>សរុបរួម</span>
+                    <span>${{ invoice.grandTotal.toFixed(2) }}</span>
+                </div>
+            </div>
+            
+            <!-- Invoice Actions -->
+            <div class="invoice-actions">
+                <button class="btn" @click="printInvoice">
+                    <i class="fas fa-print"></i> បោះពុម្ព
+                </button>
+                <button class="btn" @click="saveInvoiceAsImage">
+                    <i class="fas fa-image"></i> រក្សាទុកជារូបភាព
+                </button>
+                <button class="btn" @click="saveInvoiceAsPDF">
+                    <i class="fas fa-file-pdf"></i> រក្សាទុកជា PDF
+                </button>
+                <button class="btn" @click="clearInvoice">
+                    <i class="fas fa-times"></i> លុបវិក័យប័ត្រ
+                </button>
+            </div>
+        </div>
+        
+        <!-- No Items Message -->
+        <div v-else class="no-items-message">
+            <i class="fas fa-shopping-cart"></i>
+            <p>វិក័យប័ត្រទទេ។ សូមបន្ថែមគ្រឿងពីខាងលើ!</p>
+        </div>
+
+        <!-- Invoice History -->
+        <div v-if="invoiceHistory.length > 0" class="invoice-history">
+            <h4><i class="fas fa-history"></i> ប្រវត្តិវិក័យប័ត្រ ({{ invoiceHistory.length }})</h4>
+            <div class="history-list">
+                <div v-for="(inv, index) in invoiceHistory.slice().reverse()" :key="index" class="history-item">
+                    <div class="history-header">
+                        <div class="history-customer">
+                            <strong>{{ inv.customerName || 'មិនស្គាល់អតិថិជន' }}</strong>
+                            <small>{{ inv.date }}</small>
+                        </div>
+                        <div class="history-amount">
+                            ${{ inv.grandTotal.toFixed(2) }}
+                            <small>{{ inv.items.length }} គ្រឿង</small>
+                        </div>
+                    </div>
+                    <div class="history-actions">
+                        <button @click="viewInvoiceHistory(inv)" class="small-btn view-btn">
+                            <i class="fas fa-eye"></i> មើល
+                        </button>
+                        <button @click="printInvoiceFromHistory(inv)" class="small-btn print-btn">
+                            <i class="fas fa-print"></i> បោះពុម្ព
+                        </button>
+                        <button @click="deleteInvoiceHistory(inv.id)" class="small-btn delete-btn">
+                            <i class="fas fa-trash"></i> លុប
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Invoice Preview (hidden, for printing/saving) -->
+    <div ref="invoicePreview" class="invoice-preview hidden">
+        <div class="preview-header">
+            <h2>វិក័យប័ត្រ</h2>
+            <div class="preview-info">
+                <p><strong>អតិថិជន:</strong> {{ invoice.customerName }}</p>
+                <p><strong>កាលបរិច្ឆេទ:</strong> {{ invoice.date }}</p>
+                <p><strong>លេខវិក័យប័ត្រ:</strong> INV-{{ invoice.id }}</p>
+                <p v-if="invoice.customerPhone"><strong>ទូរស័ព្ទ:</strong> {{ invoice.customerPhone }}</p>
+            </div>
+        </div>
+        
+        <table class="preview-table">
+            <thead>
+                <tr>
+                    <th>ល.រ</th>
+                    <th>ពណ៌នា</th>
+                    <th>ចំនួន</th>
+                    <th>តម្លៃឯកតា</th>
+                    <th>សរុប</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(item, index) in invoice.items" :key="index">
+                    <td>{{ index + 1 }}</td>
+                    <td>{{ item.description }}{{ item.code ? ' (' + item.code + ')' : '' }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>${{ item.unitPrice.toFixed(2) }}</td>
+                    <td>${{ (item.quantity * item.unitPrice).toFixed(2) }}</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="preview-totals">
+            <div class="total-row">
+                <span>សរុបរង:</span>
+                <span>${{ invoice.subtotal.toFixed(2) }}</span>
+            </div>
+            <div class="total-row grand">
+                <span>សរុបរួម:</span>
+                <span>${{ invoice.grandTotal.toFixed(2) }}</span>
+            </div>
+        </div>
+        
+        <div class="preview-footer">
+            <p>អរគុណសម្រាប់ការទិញឥវ៉ាន់!</p>
+            <p>សូមទំនាក់ទំនងពួកយើងផ្ទាល់ប្រសិនបើមានបញ្ហាក្នុងវិក័យបត្រ។</p>
+        </div>
+    </div>
+</div>
     
                 <div class="form-card">
                     <h3><i class="fas fa-info-circle"></i> សេចក្តីណែនាំ</h3>
