@@ -91,6 +91,56 @@ body {
     color: var(--text-dark);
 }
 
+/* Language Toggle */
+.header-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.language-toggle select {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: none;
+    background: var(--bg-card);
+    color: var(--text-color);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.language-toggle select:focus {
+    outline: 2px solid var(--accent-green);
+}
+
+/* Invoice count */
+.inventory-count {
+    font-size: 14px;
+    color: var(--accent-green);
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .header-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .theme-toggle, .language-toggle {
+        width: 100%;
+    }
+    
+    .language-toggle select {
+        width: 100%;
+        text-align: center;
+    }
+}
 .tabs {
     display: flex;
     gap: 8px;
