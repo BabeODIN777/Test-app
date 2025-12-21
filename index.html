@@ -308,8 +308,11 @@
     <div class="invoice-controls">
         <!-- Invoice Header -->
         <div class="invoice-header">
-            <h3><i class="fas fa-file-invoice-dollar"></i> បង្កើតវិក័យប័ត្រ</h3>
-            <div class="invoice-header-actions">
+    <div>
+        <h3><i class="fas fa-file-invoice-dollar"></i> បង្កើតវិក័យប័ត្រ</h3>
+        <p class="invoice-number-display">លេខវិក័យប័ត្រ: <strong>{{ invoice.invoiceNumber }}</strong></p>
+    </div>
+    <div class="invoice-header-actions">
                 <button class="btn" @click="createNewInvoice">
                     <i class="fas fa-plus"></i> វិក័យប័ត្រថ្មី
                 </button>
@@ -339,7 +342,7 @@
                 </div>
                 <div>
                     <label for="invoiceNumber">លេខវិក័យប័ត្រ</label>
-                    <input type="text" id="invoiceNumber" :value="'INV-' + invoice.id" readonly>
+                    <input type="text" id="invoiceNumber" :value="invoice.invoiceNumber" readonly>
                 </div>
             </div>
         </div>
