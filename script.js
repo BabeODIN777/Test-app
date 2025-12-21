@@ -2,6 +2,290 @@ const { createApp, ref, computed, onMounted } = Vue;
 
 createApp({
     setup() {
+        // ==================== LANGUAGE SYSTEM ====================
+        const currentLanguage = ref(localStorage.getItem('language') || 'en');
+        
+        // Translation dictionary
+        const translations = {
+            en: {
+                // App & Header
+                appTitle: 'Auto Parts Management System',
+                lightMode: '☀️ Light Mode',
+                darkMode: '🌙 Dark Mode',
+                installApp: 'Install App',
+                
+                // Tabs
+                addPart: 'Add Part',
+                stock: 'Stock',
+                statistics: 'Statistics',
+                importExport: 'Import/Export',
+                invoice: 'Invoice',
+                
+                // Form Labels
+                company: 'Company',
+                enterCompany: 'Enter company name',
+                partCode: 'Part Code',
+                enterPartCode: 'Enter part code',
+                partName: 'Part Name',
+                enterPartName: 'Enter part name',
+                carModel: 'Car Model',
+                enterCarModel: 'Enter car model',
+                modelYear: 'Model Year',
+                enterModelYear: 'Enter model year',
+                quantity: 'Quantity',
+                purchasePrice: 'Purchase Price',
+                sellingPrice: 'Selling Price',
+                savePart: 'Save Part',
+                
+                // Stock Tab
+                searchParts: 'Search parts...',
+                allCompanies: 'All Companies',
+                allCarModels: 'All Car Models',
+                allModelYears: 'All Model Years',
+                clearFilters: 'Clear Filters',
+                showing: 'Showing',
+                of: 'of',
+                items: 'items',
+                code: 'Code',
+                purchase: 'Purchase',
+                selling: 'Selling',
+                profit: 'Profit',
+                edit: 'Edit',
+                delete: 'Delete',
+                exportToCSV: 'Export to CSV',
+                
+                // Statistics
+                totalItems: 'Total Items',
+                totalCost: 'Total Cost',
+                totalProfit: 'Total Profit',
+                lowStockItems: 'Low Stock Items',
+                
+                // Bulk Operations
+                importFromCSV: 'Import Parts from CSV File',
+                importDescription: 'Import multiple parts at once using CSV file',
+                clickToSelectCSV: 'Click to select CSV file',
+                orDragAndDrop: 'Or drag and drop file here',
+                downloadTemplate: 'Download Template',
+                exportAll: 'Export All',
+                importResults: 'Import Results',
+                successfullyImported: 'Successfully imported',
+                errors: 'Errors',
+                clearResults: 'Clear Results',
+                instructions: 'Instructions',
+                instruction1: 'Download template file by clicking "Download Template" button',
+                instruction2: 'Fill part information in CSV file',
+                instruction3: 'Select file by clicking on gray area',
+                instruction4: 'Parts will be imported automatically',
+                note: 'Note: If part code already exists, it will update old data',
+                
+                // Invoice System
+                createInvoice: 'Create Invoice',
+                invoiceNumber: 'Invoice Number',
+                newInvoice: 'New Invoice',
+                save: 'Save',
+                customerInformation: 'Customer Information',
+                customerName: 'Customer Name',
+                enterCustomerName: 'Enter customer name',
+                date: 'Date',
+                phoneNumber: 'Phone Number',
+                phonePlaceholder: 'Phone number',
+                addItemsToInvoice: 'Add Items to Invoice',
+                searchFromStock: 'Search Items from Stock',
+                searchItems: 'Search Items',
+                searchByCodeOrName: 'Search by code or part name...',
+                addFromStock: 'Add from Stock',
+                addManualItem: 'Add Manual Item',
+                itemName: 'Item Name',
+                itemNamePlaceholder: 'Item name',
+                price: 'Price',
+                addManual: 'Add Manual',
+                itemsInInvoice: 'Items in Invoice',
+                no: 'No',
+                description: 'Description',
+                unitPrice: 'Unit Price',
+                total: 'Total',
+                actions: 'Actions',
+                type: 'Type',
+                subtotal: 'Subtotal',
+                grandTotal: 'Grand Total',
+                print: 'Print',
+                saveAsImage: 'Save as Image',
+                saveAsPDF: 'Save as PDF',
+                clearInvoice: 'Clear Invoice',
+                invoiceEmpty: 'Invoice is empty. Please add items from above!',
+                invoiceHistory: 'Invoice History',
+                unknownCustomer: 'Unknown Customer',
+                view: 'View',
+                thankYou: 'Thank you for your purchase!',
+                contactUs: 'Please contact us directly if there are any issues with the invoice.',
+                customer: 'Customer',
+                phone: 'Phone',
+                
+                // Modals
+                duplicateCode: 'Part Code',
+                duplicatePrompt: 'Do you want to add as new item or edit existing item?',
+                addNew: 'Add New',
+                editExisting: 'Edit Existing',
+                cancel: 'Cancel',
+                editPart: 'Edit Part',
+                saveChanges: 'Save Changes',
+                qrCodeFor: 'QR Code for',
+                car: 'Car',
+                download: 'Download',
+                close: 'Close',
+                
+                // Alerts & Messages
+                model: 'Model',
+                year: 'Year',
+                stock: 'Stock'
+            },
+            km: {
+                // App & Header
+                appTitle: 'កម្មវិធីគ្រប់គ្រងគ្រឿងឡាន',
+                lightMode: '☀️ ផ្ទាំងភ្លឺ',
+                darkMode: '🌙 ផ្ទាំងងងឹត',
+                installApp: 'ដំឡើងកម្មវិធី',
+                
+                // Tabs
+                addPart: 'បន្ថែមគ្រឿង',
+                stock: 'ស្តុកគ្រឿង',
+                statistics: 'ស្ថិតិ',
+                importExport: 'នាំចូល/ចេញ',
+                invoice: 'វិក័យប័ត្រ',
+                
+                // Form Labels
+                company: 'ក្រុមហ៊ុន',
+                enterCompany: 'បញ្ចូលឈ្មោះក្រុមហ៊ុន',
+                partCode: 'កូដគ្រឿង',
+                enterPartCode: 'បញ្ចូលកូដគ្រឿង',
+                partName: 'ឈ្មោះគ្រឿង',
+                enterPartName: 'បញ្ចូលឈ្មោះគ្រឿង',
+                carModel: 'ម៉ូដែលឡាន',
+                enterCarModel: 'បញ្ចូលម៉ូដែលឡាន',
+                modelYear: 'ឆ្នាំម៉ូដែល',
+                enterModelYear: 'បញ្ចូលឆ្នាំម៉ូដែល',
+                quantity: 'ចំនួន',
+                purchasePrice: 'តម្លៃទិញ',
+                sellingPrice: 'តម្លៃលក់',
+                savePart: 'រក្សាទុកគ្រឿង',
+                
+                // Stock Tab
+                searchParts: 'ស្វែងរកគ្រឿង...',
+                allCompanies: 'គ្រប់ក្រុមហ៊ុន',
+                allCarModels: 'គ្រប់ម៉ូដែលឡាន',
+                allModelYears: 'គ្រប់ឆ្នាំម៉ូដែល',
+                clearFilters: 'លុបតម្រង',
+                showing: 'កំពុងបង្ហាញ',
+                of: 'ក្នុងចំណោម',
+                items: 'គ្រឿង',
+                code: 'កូដ',
+                purchase: 'ទិញ',
+                selling: 'លក់',
+                profit: 'ចំណេញ',
+                edit: 'កែ',
+                delete: 'លុប',
+                exportToCSV: 'នាំចេញជា CSV',
+                
+                // Statistics
+                totalItems: 'ទំនិញសរុប',
+                totalCost: 'តម្លៃទិញសរុប',
+                totalProfit: 'ប្រាក់ចំណេញសរុប',
+                lowStockItems: 'គ្រឿងស្តុកទាប',
+                
+                // Bulk Operations
+                importFromCSV: 'នាំចូលគ្រឿងពីឯកសារ CSV',
+                importDescription: 'អាចនាំចូលគ្រឿងច្រើនក្នុងពេលតែមួយដោយប្រើឯកសារ CSV',
+                clickToSelectCSV: 'ចុចដើម្បីជ្រើសរើសឯកសារ CSV',
+                orDragAndDrop: 'ឬទាញឯកសារទម្លាក់នៅទីនេះ',
+                downloadTemplate: 'ទាញយកគំរូ',
+                exportAll: 'នាំចេញទាំងអស់',
+                importResults: 'លទ្ធផលនាំចូល',
+                successfullyImported: 'បានដាក់ចូលដោយជោគជ័យ',
+                errors: 'មានកំហុស',
+                clearResults: 'លុបលទ្ធផល',
+                instructions: 'សេចក្តីណែនាំ',
+                instruction1: 'ទាញយកឯកសារគំរូដោយចុចប៊ូតុង "ទាញយកគំរូ"',
+                instruction2: 'បំពេញព័ត៌មានគ្រឿងទំនិញក្នុងឯកសារ CSV',
+                instruction3: 'ជ្រើសរើសឯកសារដោយចុចត្រង់ផ្ទៃពណ៌ប្រផេះ',
+                instruction4: 'គ្រឿងនឹងត្រូវបានដាក់ចូលដោយស្វ័យប្រវត្តិ',
+                note: 'ព័ត៌មាន: ប្រសិនបើកូដគ្រឿងមានរួចហើយ វានឹងកែប្រែទិន្នន័យចាស់',
+                
+                // Invoice System
+                createInvoice: 'បង្កើតវិក័យប័ត្រ',
+                invoiceNumber: 'លេខវិក័យប័ត្រ',
+                newInvoice: 'វិក័យប័ត្រថ្មី',
+                save: 'រក្សាទុក',
+                customerInformation: 'ព័ត៌មានអតិថិជន',
+                customerName: 'ឈ្មោះអតិថិជន',
+                enterCustomerName: 'បញ្ចូលឈ្មោះអតិថិជន',
+                date: 'កាលបរិច្ឆេទ',
+                phoneNumber: 'លេខទូរស័ព្ទ',
+                phonePlaceholder: 'លេខទូរស័ព្ទ',
+                addItemsToInvoice: 'បន្ថែមគ្រឿងក្នុងវិក័យប័ត្រ',
+                searchFromStock: 'ស្វែងរកគ្រឿងពីស្តុក',
+                searchItems: 'ស្វែងរកគ្រឿង',
+                searchByCodeOrName: 'ស្វែងរកតាមកូដ ឬឈ្មោះគ្រឿង...',
+                addFromStock: 'បន្ថែមពីស្តុក',
+                addManualItem: 'បន្ថែមគ្រឿងដោយដៃ',
+                itemName: 'ឈ្មោះគ្រឿង',
+                itemNamePlaceholder: 'ឈ្មោះគ្រឿង',
+                price: 'តម្លៃ',
+                addManual: 'បន្ថែមដោយដៃ',
+                itemsInInvoice: 'គ្រឿងក្នុងវិក័យប័ត្រ',
+                no: 'ល',
+                description: 'ពណ៌នា',
+                unitPrice: 'តម្លៃឯកតា',
+                total: 'សរុប',
+                actions: 'សកម្មភាព',
+                type: 'ប្រភេទ',
+                subtotal: 'សរុបរង',
+                grandTotal: 'សរុបរួម',
+                print: 'បោះពុម្ព',
+                saveAsImage: 'រក្សាទុកជារូបភាព',
+                saveAsPDF: 'រក្សាទុកជា PDF',
+                clearInvoice: 'លុបវិក័យប័ត្រ',
+                invoiceEmpty: 'វិក័យប័ត្រទទេ។ សូមបន្ថែមគ្រឿងពីខាងលើ!',
+                invoiceHistory: 'ប្រវត្តិវិក័យប័ត្រ',
+                unknownCustomer: 'មិនស្គាល់អតិថិជន',
+                view: 'មើល',
+                thankYou: 'អរគុណសម្រាប់ការទិញឥវ៉ាន់!',
+                contactUs: 'សូមទំនាក់ទំនងពួកយើងផ្ទាល់ប្រសិនបើមានបញ្ហាក្នុងវិក័យបត្រ។',
+                customer: 'អតិថិជន',
+                phone: 'ទូរស័ព្ទ',
+                
+                // Modals
+                duplicateCode: 'កូដគ្រឿង',
+                duplicatePrompt: 'តើអ្នកចង់បន្ថែមជាទំនិញថ្មី ឬកែប្រែទំនិញចាស់?',
+                addNew: 'បន្ថែមថ្មី',
+                editExisting: 'កែប្រែចាស់',
+                cancel: 'បោះបង់',
+                editPart: 'កែប្រែគ្រឿង',
+                saveChanges: 'រក្សាទុក',
+                qrCodeFor: 'QR Code សម្រាប់',
+                car: 'ឡាន',
+                download: 'ទាញយក',
+                close: 'បិទ',
+                
+                // Alerts & Messages
+                model: 'ម៉ូដែល',
+                year: 'ឆ្នាំ',
+                stock: 'ស្តុក'
+            }
+        };
+
+        // Translation function
+        const t = (key) => {
+            return translations[currentLanguage.value]?.[key] || translations.en[key] || key;
+        };
+
+        // Change language function
+        const changeLanguage = () => {
+            localStorage.setItem('language', currentLanguage.value);
+            // Update HTML lang attribute
+            document.documentElement.lang = currentLanguage.value;
+        };
+
+        // ==================== REST OF YOUR ORIGINAL CODE ====================
         const inventory = ref(JSON.parse(localStorage.getItem('inventory')) || []);
         const activeTab = ref('add');
         const searchQuery = ref('');
@@ -69,7 +353,7 @@ createApp({
         const selectedInventoryItem = ref({ quantity: 1 });
         const manualItem = ref({ name: '', price: 0, quantity: 1 });
 
-        // ==================== INVOICE FUNCTIONS - MOVE EARLIER ====================
+        // ==================== INVOICE FUNCTIONS ====================
         const generateInvoiceNumber = () => {
             const number = invoiceCounter.value.toString().padStart(7, '0');
             const invoiceNumber = `${invoiceNumberPrefix}${number}`;
@@ -186,7 +470,9 @@ createApp({
 
         const saveItem = () => {
             if (parseFloat(form.value.sellPrice) < parseFloat(form.value.buyPrice)) {
-                alert('Selling price must be greater than purchase price');
+                alert(currentLanguage.value === 'km' ? 
+                    'តម្លៃលក់ត្រូវតែធំជាង ឬស្មើតម្លៃទិញ' : 
+                    'Selling price must be greater than purchase price');
                 return;
             }
 
@@ -208,7 +494,7 @@ createApp({
             inventory.value.push(newItem);
             saveToStorage();
             resetForm();
-            alert('Saved successfully!');
+            alert(currentLanguage.value === 'km' ? 'រក្សាទុកដោយជោគជ័យ!' : 'Saved successfully!');
         };
 
         const addAsNew = () => {
@@ -217,7 +503,7 @@ createApp({
             showDuplicateModal.value = false;
             duplicateItem.value = null;
             resetForm();
-            alert('Added as new item successfully!');
+            alert(currentLanguage.value === 'km' ? 'បានបន្ថែមជាទំនិញថ្មីដោយជោគជ័យ!' : 'Added as new item successfully!');
         };
 
         const editExisting = () => {
@@ -239,7 +525,9 @@ createApp({
 
         const updateItem = () => {
             if (parseFloat(editForm.value.sellPrice) < parseFloat(editForm.value.buyPrice)) {
-                alert('Selling price must be greater than purchase price');
+                alert(currentLanguage.value === 'km' ? 
+                    'តម្លៃលក់ត្រូវតែធំជាង ឬស្មើតម្លៃទិញ' : 
+                    'Selling price must be greater than purchase price');
                 return;
             }
 
@@ -253,19 +541,24 @@ createApp({
                 };
                 saveToStorage();
                 closeEditModal();
-                alert('Updated successfully!');
+                alert(currentLanguage.value === 'km' ? 'កែប្រែដោយជោគជ័យ!' : 'Updated successfully!');
             }
         };
 
         const deleteItem = (id) => {
-            if (confirm('Are you sure you want to delete this item?')) {
+            if (confirm(currentLanguage.value === 'km' ? 
+                'តើអ្នកប្រាកដជាចង់លុបគ្រឿងនេះទេ?' : 
+                'Are you sure you want to delete this item?')) {
                 inventory.value = inventory.value.filter(item => item.id !== id);
                 saveToStorage();
             }
         };
 
         const exportToCSV = () => {
-            const headers = ['No.', 'Part Name', 'Type', 'Car Model', 'Model Year', 'Purchase Price', 'Selling Price', 'Quantity'];
+            const headers = currentLanguage.value === 'km' ? 
+                ['ល.រ', 'ឈ្មោះគ្រឿង', 'ប្រភេទ', 'ម៉ូដែលឡាន', 'ឆ្នាំម៉ូដែល', 'តម្លៃទិញ', 'តម្លៃលក់', 'ចំនួន'] :
+                ['No.', 'Part Name', 'Type', 'Car Model', 'Model Year', 'Purchase Price', 'Selling Price', 'Quantity'];
+            
             const rows = inventory.value.map((item, idx) => [
                 idx + 1,
                 `"${item.partName}"`,
@@ -281,7 +574,7 @@ createApp({
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'auto_parts_inventory.csv';
+            a.download = currentLanguage.value === 'km' ? 'krom_krong_lan.csv' : 'auto_parts_inventory.csv';
             a.click();
         };
 
@@ -350,7 +643,9 @@ createApp({
             
             if (typeof QRCode === 'undefined') {
                 console.error('QRCode library not loaded!');
-                alert('QR Code library failed to load. Please refresh.');
+                alert(currentLanguage.value === 'km' ? 
+                    'QR Code library បរាជ័យក្នុងការផ្ទុក។ សូមធ្វើការ Refresh ។' : 
+                    'QR Code library failed to load. Please refresh.');
                 createSimplePlaceholder(qrContainer, item);
                 return;
             }
@@ -406,7 +701,7 @@ createApp({
 
         const downloadQR = () => {
             if (!qrCodeInstance.value) {
-                alert('Generate QR first!');
+                alert(currentLanguage.value === 'km' ? 'សូមបង្កើត QR ជាមុន!' : 'Generate QR first!');
                 return;
             }
             
@@ -422,13 +717,13 @@ createApp({
 
         const printQR = () => {
             if (!qrCodeInstance.value || !currentQRData.value) {
-                alert('Generate QR first!');
+                alert(currentLanguage.value === 'km' ? 'សូមបង្កើត QR ជាមុន!' : 'Generate QR first!');
                 return;
             }
             
             const printWindow = window.open('', '_blank');
             if (!printWindow) {
-                alert('Allow popups to print.');
+                alert(currentLanguage.value === 'km' ? 'អនុញ្ញាតឱ្យបង្អួចលេចឡើងដើម្បីបោះពុម្ព។' : 'Allow popups to print.');
                 return;
             }
             
@@ -452,13 +747,13 @@ createApp({
                         <img src="${qrImageData}" width="200">
                     </div>
                     <div class="info">
-                        <p><strong>Part Name:</strong> ${currentQRData.value.partName}</p>
-                        <p><strong>Code:</strong> ${currentQRData.value.productCode}</p>
-                        <p><strong>Car:</strong> ${currentQRData.value.carModel}</p>
-                        <p><strong>Year:</strong> ${currentQRData.value.modelYear}</p>
-                        <p><strong>Price:</strong> $${currentQRData.value.sellPrice.toFixed(2)}</p>
-                        <p><strong>Stock:</strong> ${currentQRData.value.quantity}</p>
-                        <p><strong>Company:</strong> ${currentQRData.value.company}</p>
+                        <p><strong>${t('partName')}:</strong> ${currentQRData.value.partName}</p>
+                        <p><strong>${t('code')}:</strong> ${currentQRData.value.productCode}</p>
+                        <p><strong>${t('car')}:</strong> ${currentQRData.value.carModel}</p>
+                        <p><strong>${t('year')}:</strong> ${currentQRData.value.modelYear}</p>
+                        <p><strong>${t('sellingPrice')}:</strong> $${currentQRData.value.sellPrice.toFixed(2)}</p>
+                        <p><strong>${t('stock')}:</strong> ${currentQRData.value.quantity}</p>
+                        <p><strong>${t('company')}:</strong> ${currentQRData.value.company}</p>
                     </div>
                     <script>
                         window.onload = function() {
@@ -498,7 +793,7 @@ createApp({
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'auto_parts_template.csv';
+            a.download = currentLanguage.value === 'km' ? 'គំរូ_គ្រឿង_ឡាន.csv' : 'auto_parts_template.csv';
             a.click();
         };
 
@@ -524,7 +819,7 @@ createApp({
                     });
                     
                     if (!item.productCode || !item.partName) {
-                        errors.push(`Line ${i}: Missing required fields`);
+                        errors.push(`Line ${i}: ${currentLanguage.value === 'km' ? 'ខ្វះព័ត៌មានចាំបាច់' : 'Missing required fields'}`);
                         continue;
                     }
                     
@@ -597,7 +892,7 @@ createApp({
 
         const addInventoryItem = () => {
             if (!selectedSearchItem.value) {
-                alert('Please select an item from stock!');
+                alert(currentLanguage.value === 'km' ? 'សូមជ្រើសរើសគ្រឿងពីស្តុក!' : 'Please select an item from stock!');
                 return;
             }
             
@@ -632,7 +927,7 @@ createApp({
 
         const addManualItem = () => {
             if (!manualItem.value.name || !manualItem.value.price) {
-                alert('Please fill in item name and price!');
+                alert(currentLanguage.value === 'km' ? 'សូមបំពេញឈ្មោះ និងតម្លៃគ្រឿង!' : 'Please fill in item name and price!');
                 return;
             }
             
@@ -652,7 +947,9 @@ createApp({
         };
 
         const removeInvoiceItem = (index) => {
-            if (confirm('Are you sure you want to remove this item from the invoice?')) {
+            if (confirm(currentLanguage.value === 'km' ? 
+                'តើអ្នកចង់លុបគ្រឿងនេះពីវិក័យប័ត្រទេ?' : 
+                'Are you sure you want to remove this item from the invoice?')) {
                 invoice.value.items.splice(index, 1);
                 updateInvoiceTotal();
             }
@@ -665,12 +962,12 @@ createApp({
 
         const saveInvoiceToHistory = () => {
             if (!invoice.value.customerName.trim()) {
-                alert('Please fill in customer name!');
+                alert(currentLanguage.value === 'km' ? 'សូមបំពេញឈ្មោះអតិថិជន!' : 'Please fill in customer name!');
                 return;
             }
             
             if (invoice.value.items.length === 0) {
-                alert('Please add items to the invoice!');
+                alert(currentLanguage.value === 'km' ? 'សូមបន្ថែមគ្រឿងចូលក្នុងវិក័យប័ត្រ!' : 'Please add items to the invoice!');
                 return;
             }
             
@@ -685,7 +982,7 @@ createApp({
             invoiceHistory.value.push(invoiceToSave);
             localStorage.setItem('invoiceHistory', JSON.stringify(invoiceHistory.value));
             
-            alert('Invoice saved successfully!');
+            alert(currentLanguage.value === 'km' ? 'វិក័យប័ត្រត្រូវបានរក្សាទុកដោយជោគជ័យ!' : 'Invoice saved successfully!');
             createNewInvoice();
         };
 
@@ -697,7 +994,9 @@ createApp({
 
         const printInvoice = () => {
             if (!invoice.value.customerName.trim() || invoice.value.items.length === 0) {
-                alert('Please fill in customer information and add items first!');
+                alert(currentLanguage.value === 'km' ? 
+                    'សូមបំពេញព័ត៌មានអតិថិជន និងបន្ថែមគ្រឿងជាមុន!' : 
+                    'Please fill in customer information and add items first!');
                 return;
             }
             
@@ -710,10 +1009,10 @@ createApp({
                 <!DOCTYPE html>
                 <html>
                 <head>
-                    <title>Invoice ${invoice.value.invoiceNumber}</title>
+                    <title>${t('invoice')} ${invoice.value.invoiceNumber}</title>
                     <meta charset="UTF-8">
                     <style>
-                        body { font-family: 'Arial', sans-serif; padding: 20px; color: #000; }
+                        body { font-family: 'Arial', 'Khmer OS', sans-serif; padding: 20px; color: #000; }
                         .invoice-preview { max-width: 800px; margin: 0 auto; }
                         .preview-header { border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
                         .preview-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
@@ -746,25 +1045,33 @@ createApp({
         };
 
         const deleteInvoiceHistory = (invoiceId) => {
-            if (confirm('Are you sure you want to delete this invoice from history?')) {
+            if (confirm(currentLanguage.value === 'km' ? 
+                'តើអ្នកពិតជាចង់លុបវិក័យប័ត្រនេះពីប្រវត្តិទេ?' : 
+                'Are you sure you want to delete this invoice from history?')) {
                 invoiceHistory.value = invoiceHistory.value.filter(inv => inv.id !== invoiceId);
                 localStorage.setItem('invoiceHistory', JSON.stringify(invoiceHistory.value));
-                alert('Invoice deleted successfully!');
+                alert(currentLanguage.value === 'km' ? 'វិក័យប័ត្រត្រូវបានលុបដោយជោគជ័យ!' : 'Invoice deleted successfully!');
             }
         };
 
         const saveInvoiceAsImage = () => {
-            alert('To save as image, please use the print function and select "Save as PDF" or "Save as Image"');
+            alert(currentLanguage.value === 'km' ? 
+                'ដើម្បីរក្សាទុកជារូបភាព សូមប្រើឧបករណ៍បោះពុម្ព និងជ្រើសរើស "Save as PDF" ឬ "Save as Image"' : 
+                'To save as image, please use the print function and select "Save as PDF" or "Save as Image"');
             printInvoice();
         };
 
         const saveInvoiceAsPDF = () => {
-            alert('To save as PDF, please use the print function and select "Save as PDF"');
+            alert(currentLanguage.value === 'km' ? 
+                'ដើម្បីរក្សាទុកជា PDF សូមប្រើឧបករណ៍បោះពុម្ព និងជ្រើសរើស "Save as PDF"' : 
+                'To save as PDF, please use the print function and select "Save as PDF"');
             printInvoice();
         };
 
         const clearInvoice = () => {
-            if (confirm('Are you sure you want to clear the current invoice? All data will be lost.')) {
+            if (confirm(currentLanguage.value === 'km' ? 
+                'តើអ្នកពិតជាចង់លុបវិក័យប័ត្របច្ចុប្បន្នទេ? ទិន្នន័យនឹងត្រូវបាត់បង់។' : 
+                'Are you sure you want to clear the current invoice? All data will be lost.')) {
                 createNewInvoice();
             }
         };
@@ -772,6 +1079,9 @@ createApp({
         // ==================== MOUNTED ====================
         onMounted(() => {
             document.body.classList.toggle('light-mode', isLightMode.value);
+            
+            // Set initial language
+            document.documentElement.lang = currentLanguage.value;
             
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
@@ -809,6 +1119,12 @@ createApp({
 
         // ==================== RETURN ====================
         return {
+            // Language system
+            currentLanguage,
+            t,
+            changeLanguage,
+            
+            // Original app state
             inventory,
             activeTab,
             searchQuery,
