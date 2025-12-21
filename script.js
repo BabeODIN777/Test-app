@@ -574,6 +574,22 @@ const invoiceNumberPrefix = 'INV-';
                 quantity: item.quantity || 1
             }));
             saveToStorage();
+            // Initialize invoice counter if not set
+       if (!localStorage.getItem('invoiceCounter')) {
+           // If there are existing invoices in history, find the highest number
+           if (invoiceHistory.value.length > 0) {
+               const invoiceNumbers = invoiceHistory.value
+                   .filter(inv => inv.invoiceNumber && inv.invoiceNumber.startsWith(invoiceNumberPrefix))
+                   .map(inv => {
+                       const numStr = inv.invoiceNumber.replace(invoiceNumberPrefix, '');
+                       return parseInt(numStr, 10) || 0;
+                   });
+               
+               const maxNumber = Math.max(...invoiceNumbers, 0);
+               invoiceCounter.value = maxNumber + 1;
+               localStorage.setItem('invoiceCounter', invoiceCounter.value);
+           }
+       }
         });
         // ==================== INVOICE SYSTEM STATE ====================
 const invoice = ref({
@@ -801,7 +817,7 @@ const printInvoice = () => {
         <!DOCTYPE html>
         <html>
         <head>
-            <p><strong>លេខវិក័យបត្រ:</strong> INV-{{ invoice.id }}</p>
+            <title>វិក័យប័ត្រ ${invoice.value.invoiceNumber}</title>
             <meta charset="UTF-8">
             <style>
                 body { font-family: 'Arial', 'Khmer OS', sans-serif; padding: 20px; color: #000; }
@@ -868,25 +884,6 @@ const clearInvoice = () => {
         createNewInvoice();
     }
 };
-
-// Initialize invoice on mounted
-onMounted(() => {
-    // ... existing mounted code ...
-if (!localStorage.getItem('invoiceCounter')) {
-    // If there are existing invoices in history, find the highest number
-    if (invoiceHistory.value.length > 0) {
-        const invoiceNumbers = invoiceHistory.value
-            .filter(inv => inv.invoiceNumber && inv.invoiceNumber.startsWith(invoiceNumberPrefix))
-            .map(inv => {
-                const numStr = inv.invoiceNumber.replace(invoiceNumberPrefix, '');
-                return parseInt(numStr, 10) || 0;
-            });
-        
-        const maxNumber = Math.max(...invoiceNumbers, 0);
-        invoiceCounter.value = maxNumber + 1;
-        localStorage.setItem('invoiceCounter', invoiceCounter.value);
-    }
-}
 
         return {
             inventory,
