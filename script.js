@@ -50,6 +50,60 @@ createApp({
         const selectedCarModel = ref('');
         const selectedYear = ref('');
 
+        // ==================== INVOICE SYSTEM STATE ====================
+        const invoice = ref({
+            id: Date.now(),
+            invoiceNumber: '',
+            customerName: '',
+            customerPhone: '',
+            date: new Date().toISOString().split('T')[0],
+            items: [],
+            subtotal: 0,
+            grandTotal: 0
+        });
+
+        const invoiceHistory = ref(JSON.parse(localStorage.getItem('invoiceHistory')) || []);
+        const itemSearch = ref('');
+        const searchResults = ref([]);
+        const selectedSearchItem = ref(null);
+        const selectedInventoryItem = ref({ quantity: 1 });
+        const manualItem = ref({ name: '', price: 0, quantity: 1 });
+
+        // ==================== INVOICE FUNCTIONS - MOVE EARLIER ====================
+        const generateInvoiceNumber = () => {
+            const number = invoiceCounter.value.toString().padStart(7, '0');
+            const invoiceNumber = `${invoiceNumberPrefix}${number}`;
+            invoiceCounter.value++;
+            localStorage.setItem('invoiceCounter', invoiceCounter.value);
+            return invoiceNumber;
+        };
+
+        const createNewInvoice = () => {
+            const invoiceNumber = generateInvoiceNumber();
+            
+            invoice.value = {
+                id: Date.now(),
+                invoiceNumber: invoiceNumber,
+                customerName: '',
+                customerPhone: '',
+                date: new Date().toISOString().split('T')[0],
+                items: [],
+                subtotal: 0,
+                grandTotal: 0
+            };
+            
+            itemSearch.value = '';
+            searchResults.value = [];
+            selectedSearchItem.value = null;
+            selectedInventoryItem.value = { quantity: 1 };
+            manualItem.value = { name: '', price: 0, quantity: 1 };
+        };
+
+        const switchToInvoiceTab = () => {
+            activeTab.value = 'invoice';
+            createNewInvoice();
+        };
+
         // ==================== COMPUTED PROPERTIES ====================
         const uniqueCompanies = computed(() => {
             const companies = new Set(inventory.value.map(item => item.company));
@@ -105,7 +159,22 @@ createApp({
         const totalProfit = computed(() => inventory.value.reduce((sum, item) => sum + (item.sellPrice - item.buyPrice), 0));
         const lowStockCount = computed(() => inventory.value.filter(item => item.quantity <= 2).length);
 
-        // ==================== FUNCTIONS ====================
+        const invoiceSubtotal = computed(() => {
+            return invoice.value.items.reduce((sum, item) => {
+                return sum + (item.unitPrice * item.quantity);
+            }, 0);
+        });
+
+        const invoiceGrandTotal = computed(() => {
+            return invoiceSubtotal.value;
+        });
+
+        const getNextInvoiceNumber = () => {
+            const counter = JSON.parse(localStorage.getItem('invoiceCounter')) || 1;
+            return `${invoiceNumberPrefix}${counter.toString().padStart(7, '0')}`;
+        };
+
+        // ==================== MAIN FUNCTIONS ====================
         const toggleTheme = () => {
             document.body.classList.toggle('light-mode', isLightMode.value);
             localStorage.setItem('theme', isLightMode.value ? 'light' : 'dark');
@@ -507,80 +576,7 @@ createApp({
             a.click();
         };
 
-        // ==================== INVOICE SYSTEM ====================
-        const invoice = ref({
-            id: Date.now(),
-            invoiceNumber: '',
-            customerName: '',
-            customerPhone: '',
-            date: new Date().toISOString().split('T')[0],
-            items: [],
-            subtotal: 0,
-            grandTotal: 0
-        });
-
-        const invoiceHistory = ref(JSON.parse(localStorage.getItem('invoiceHistory')) || []);
-        const itemSearch = ref('');
-        const searchResults = ref([]);
-        const selectedSearchItem = ref(null);
-        const selectedInventoryItem = ref({ quantity: 1 });
-        const manualItem = ref({ name: '', price: 0, quantity: 1 });
-
-        // Generate invoice number
-        const generateInvoiceNumber = () => {
-            const number = invoiceCounter.value.toString().padStart(7, '0');
-            const invoiceNumber = `${invoiceNumberPrefix}${number}`;
-            invoiceCounter.value++;
-            localStorage.setItem('invoiceCounter', invoiceCounter.value);
-            return invoiceNumber;
-        };
-
-        // Create new invoice
-        const createNewInvoice = () => {
-            const invoiceNumber = generateInvoiceNumber();
-            
-            invoice.value = {
-                id: Date.now(),
-                invoiceNumber: invoiceNumber,
-                customerName: '',
-                customerPhone: '',
-                date: new Date().toISOString().split('T')[0],
-                items: [],
-                subtotal: 0,
-                grandTotal: 0
-            };
-            
-            itemSearch.value = '';
-            searchResults.value = [];
-            selectedSearchItem.value = null;
-            selectedInventoryItem.value = { quantity: 1 };
-            manualItem.value = { name: '', price: 0, quantity: 1 };
-        };
-
-        // Tab switching function for invoice
-        const switchToInvoiceTab = () => {
-            activeTab.value = 'invoice';
-            createNewInvoice();
-        };
-
-        // Invoice computed properties
-        const invoiceSubtotal = computed(() => {
-            return invoice.value.items.reduce((sum, item) => {
-                return sum + (item.unitPrice * item.quantity);
-            }, 0);
-        });
-
-        const invoiceGrandTotal = computed(() => {
-            return invoiceSubtotal.value;
-        });
-
-        // Get next invoice number
-        const getNextInvoiceNumber = () => {
-            const counter = JSON.parse(localStorage.getItem('invoiceCounter')) || 1;
-            return `${invoiceNumberPrefix}${counter.toString().padStart(7, '0')}`;
-        };
-
-        // Search items for invoice
+        // ==================== INVOICE FUNCTIONS ====================
         const searchItemsForInvoice = () => {
             if (!itemSearch.value.trim()) {
                 searchResults.value = [];
@@ -595,12 +591,10 @@ createApp({
             ).slice(0, 5);
         };
 
-        // Select item from search results
         const selectSearchItem = (item) => {
             selectedSearchItem.value = item;
         };
 
-        // Add inventory item to invoice
         const addInventoryItem = () => {
             if (!selectedSearchItem.value) {
                 alert('Please select an item from stock!');
@@ -636,7 +630,6 @@ createApp({
             selectedInventoryItem.value = { quantity: 1 };
         };
 
-        // Add manual item to invoice
         const addManualItem = () => {
             if (!manualItem.value.name || !manualItem.value.price) {
                 alert('Please fill in item name and price!');
@@ -658,7 +651,6 @@ createApp({
             manualItem.value = { name: '', price: 0, quantity: 1 };
         };
 
-        // Remove item from invoice
         const removeInvoiceItem = (index) => {
             if (confirm('Are you sure you want to remove this item from the invoice?')) {
                 invoice.value.items.splice(index, 1);
@@ -666,13 +658,11 @@ createApp({
             }
         };
 
-        // Update invoice totals
         const updateInvoiceTotal = () => {
             invoice.value.subtotal = invoiceSubtotal.value;
             invoice.value.grandTotal = invoiceGrandTotal.value;
         };
 
-        // Save invoice to history
         const saveInvoiceToHistory = () => {
             if (!invoice.value.customerName.trim()) {
                 alert('Please fill in customer name!');
@@ -699,14 +689,12 @@ createApp({
             createNewInvoice();
         };
 
-        // View invoice from history
         const viewInvoiceHistory = (historyInvoice) => {
             invoice.value = JSON.parse(JSON.stringify(historyInvoice));
             invoice.value.id = historyInvoice.id;
             activeTab.value = 'invoice';
         };
 
-        // Print invoice
         const printInvoice = () => {
             if (!invoice.value.customerName.trim() || invoice.value.items.length === 0) {
                 alert('Please fill in customer information and add items first!');
@@ -750,7 +738,6 @@ createApp({
             printWindow.document.close();
         };
 
-        // Print invoice from history
         const printInvoiceFromHistory = (historyInvoice) => {
             invoice.value = JSON.parse(JSON.stringify(historyInvoice));
             setTimeout(() => {
@@ -758,7 +745,6 @@ createApp({
             }, 100);
         };
 
-        // Delete invoice from history
         const deleteInvoiceHistory = (invoiceId) => {
             if (confirm('Are you sure you want to delete this invoice from history?')) {
                 invoiceHistory.value = invoiceHistory.value.filter(inv => inv.id !== invoiceId);
@@ -767,25 +753,23 @@ createApp({
             }
         };
 
-        // Save invoice as image
         const saveInvoiceAsImage = () => {
             alert('To save as image, please use the print function and select "Save as PDF" or "Save as Image"');
             printInvoice();
         };
 
-        // Save invoice as PDF
         const saveInvoiceAsPDF = () => {
             alert('To save as PDF, please use the print function and select "Save as PDF"');
             printInvoice();
         };
 
-        // Clear current invoice
         const clearInvoice = () => {
             if (confirm('Are you sure you want to clear the current invoice? All data will be lost.')) {
                 createNewInvoice();
             }
         };
 
+        // ==================== MOUNTED ====================
         onMounted(() => {
             document.body.classList.toggle('light-mode', isLightMode.value);
             
@@ -805,7 +789,6 @@ createApp({
             }));
             saveToStorage();
             
-            // Initialize invoice counter if not set
             if (!localStorage.getItem('invoiceCounter')) {
                 if (invoiceHistory.value.length > 0) {
                     const invoiceNumbers = invoiceHistory.value
@@ -821,10 +804,10 @@ createApp({
                 }
             }
             
-            // Initialize the first invoice
             createNewInvoice();
         });
 
+        // ==================== RETURN ====================
         return {
             inventory,
             activeTab,
