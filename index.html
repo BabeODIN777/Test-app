@@ -533,7 +533,7 @@
             <div class="preview-info">
                 <p><strong>អតិថិជន:</strong> {{ invoice.customerName }}</p>
                 <p><strong>កាលបរិច្ឆេទ:</strong> {{ invoice.date }}</p>
-                <p><strong>លេខវិក័យបត្រ:</strong> INV-{{ invoice.id }}</p>
+                <p><strong>លេខវិក័យបត្រ:</strong> {{ invoice.invoiceNumber }}</p>
                 <p v-if="invoice.customerPhone"><strong>ទូរស័ព្ទ:</strong> {{ invoice.customerPhone }}</p>
             </div>
         </div>
