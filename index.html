@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>កម្មវិធីគ្រប់គ្រងគ្រឿងឡាន</title>
+    <title>Auto Parts Management System</title>
     
     <!-- Favicons -->
     <link rel="apple-touch-icon" sizes="180x180" href="/Test-app/apple-touch-icon.png">
@@ -20,6 +20,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Parts Manager">
+    
     <!-- CSS & Fonts -->
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -27,60 +28,43 @@
     <!-- Vue.js -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     
-    <!-- QRCode library with multiple fallbacks -->
+    <!-- QRCode library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script>
-        // If first CDN fails, try another
-        if (typeof QRCode === 'undefined') {
-            console.log('First QRCode failed, trying fallback...');
-            const script = document.createElement('script');
-            script.src = 'https://unpkg.com/qrcode@1.5.0/build/qrcode.min.js';
-            script.onload = function() {
-                console.log('QRCode loaded from fallback');
-            };
-            script.onerror = function() {
-                console.error('All QRCode CDNs failed');
-            };
-            document.head.appendChild(script);
-        } else {
-            console.log('QRCode loaded successfully');
-        }
-    </script>
 </head>
 <body>
     <div id="app">
         <!-- Header & Theme Toggle -->
         <div class="header">
-            <h1><i class="fas fa-car"></i> កម្មវិធីគ្រប់គ្រងគ្រឿងឡាន</h1>
+            <h1><i class="fas fa-car"></i> Auto Parts Management System</h1>
             <div class="theme-toggle">
                 <label>
                     <input type="checkbox" v-model="isLightMode" @change="toggleTheme">
-                    <span>{{ isLightMode ? '🌙 ផ្ទាំងងងឹត' : '☀️ ផ្ទាំងភ្លឺ' }}</span>
+                    <span>{{ isLightMode ? '🌙 Dark Mode' : '☀️ Light Mode' }}</span>
                 </label>
             </div>
-             <div class="install-btn" v-if="showInstallBtn" @click="installPWA">
-             <i class="fas fa-download"></i> ដំឡើងកម្មវិធី
-             </div>
+            <div class="install-btn" v-if="showInstallBtn" @click="installPWA">
+                <i class="fas fa-download"></i> Install App
+            </div>
         </div>
 
         <div class="container">
             <!-- Tabs -->
             <div class="tabs">
                 <button class="tab" :class="{ active: activeTab === 'add' }" @click="activeTab = 'add'">
-                    <i class="fas fa-plus"></i> បន្ថែមគ្រឿង
+                    <i class="fas fa-plus"></i> Add Part
                 </button>
                 <button class="tab" :class="{ active: activeTab === 'stock' }" @click="activeTab = 'stock'">
-                    <i class="fas fa-boxes"></i> ស្តុកគ្រឿង
+                    <i class="fas fa-boxes"></i> Stock
                 </button>
                 <button class="tab" :class="{ active: activeTab === 'stats' }" @click="activeTab = 'stats'">
-                    <i class="fas fa-chart-bar"></i> ស្ថិតិ
+                    <i class="fas fa-chart-bar"></i> Statistics
                 </button>
-                 <button class="tab" :class="{ active: activeTab === 'bulk' }" @click="activeTab = 'bulk'">
-                     <i class="fas fa-upload"></i> នាំចូល/ចេញ
-                 </button>
-                <button class="tab" :class="{ active: activeTab === 'invoice' }" @click="activeTab = 'invoice'; createNewInvoice()">
-    <i class="fas fa-file-invoice-dollar"></i> វិក័យប័ត្រ
-</button>
+                <button class="tab" :class="{ active: activeTab === 'bulk' }" @click="activeTab = 'bulk'">
+                    <i class="fas fa-upload"></i> Import/Export
+                </button>
+                <button class="tab" :class="{ active: activeTab === 'invoice' }" @click="switchToInvoiceTab">
+                    <i class="fas fa-file-invoice-dollar"></i> Invoice
+                </button>
             </div>
 
             <!-- Add Part Tab -->
@@ -89,46 +73,46 @@
                     <form @submit.prevent="saveItem">
                         <div class="form-row">
                             <div>
-                                <label for="company"><i class="fas fa-building"></i> ក្រុមហ៊ុន</label>
+                                <label for="company"><i class="fas fa-building"></i> Company</label>
                                 <input type="text" id="company" v-model="form.company" required>
                             </div>
                             <div>
-                                <label for="productCode"><i class="fas fa-barcode"></i> កូដគ្រឿង</label>
+                                <label for="productCode"><i class="fas fa-barcode"></i> Part Code</label>
                                 <input type="text" id="productCode" v-model="form.productCode" required>
                             </div>
                         </div>
                         <div class="form-row">
                             <div>
-                                <label for="partName"><i class="fas fa-cog"></i> ឈ្មោះគ្រឿង</label>
+                                <label for="partName"><i class="fas fa-cog"></i> Part Name</label>
                                 <input type="text" id="partName" v-model="form.partName" required>
                             </div>
                             <div>
-                                <label for="carModel"><i class="fas fa-car-side"></i> ម៉ូដែលឡាន</label>
+                                <label for="carModel"><i class="fas fa-car-side"></i> Car Model</label>
                                 <input type="text" id="carModel" v-model="form.carModel" required>
                             </div>
                         </div>
                         <div class="form-row">
                             <div>
-                                <label for="modelYear"><i class="fas fa-calendar-alt"></i> ឆ្នាំម៉ូដែល</label>
+                                <label for="modelYear"><i class="fas fa-calendar-alt"></i> Model Year</label>
                                 <input type="text" id="modelYear" v-model="form.modelYear" required>
                             </div>
                             <div>
-                                <label for="quantity"><i class="fas fa-box"></i> ចំនួន</label>
+                                <label for="quantity"><i class="fas fa-box"></i> Quantity</label>
                                 <input type="number" id="quantity" v-model="form.quantity" min="1" required>
                             </div>
                         </div>
                         <div class="form-row">
                             <div>
-                                <label for="buyPrice"><i class="fas fa-dollar-sign"></i> តម្លៃទិញ ($)</label>
+                                <label for="buyPrice"><i class="fas fa-dollar-sign"></i> Purchase Price ($)</label>
                                 <input type="number" id="buyPrice" v-model="form.buyPrice" step="0.01" min="0" required>
                             </div>
                             <div>
-                                <label for="sellPrice"><i class="fas fa-tag"></i> តម្លៃលក់ ($)</label>
+                                <label for="sellPrice"><i class="fas fa-tag"></i> Selling Price ($)</label>
                                 <input type="number" id="sellPrice" v-model="form.sellPrice" step="0.01" min="0" required>
                             </div>
                         </div>
                         <button type="submit" class="btn">
-                            <i class="fas fa-save"></i> រក្សាទុកគ្រឿង
+                            <i class="fas fa-save"></i> Save Part
                         </button>
                     </form>
                 </div>
@@ -137,53 +121,54 @@
             <!-- Stock Tab -->
             <div v-if="activeTab === 'stock'" class="tab-content active">
                 <div class="search-box">
-                    <input type="text" v-model="searchQuery" placeholder="ស្វែងរកគ្រឿង...">
+                    <input type="text" v-model="searchQuery" placeholder="Search parts...">
                 </div>
-                      <!-- Add this after the search box in Stock tab -->
+                
                 <div class="filter-section">
-                <div class="filter-row">
-                <select v-model="selectedCompany" @change="applyFilters">
-                <option value="">គ្រប់ក្រុមហ៊ុន</option>
-                <option v-for="company in uniqueCompanies" :value="company">{{ company }}</option>
-                </select>
-        
-                <select v-model="selectedCarModel" @change="applyFilters">
-                <option value="">គ្រប់ម៉ូដែលឡាន</option>
-                <option v-for="model in uniqueCarModels" :value="model">{{ model }}</option>
-                </select>
-        
-                <select v-model="selectedYear" @change="applyFilters">
-            <option value="">គ្រប់ឆ្នាំម៉ូដែល</option>
-            <option v-for="year in uniqueYears" :value="year">{{ year }}</option>
-        </select>
-        
-        <button class="clear-filters" @click="clearFilters">
-            <i class="fas fa-times"></i> លុបតម្រង
-        </button>
-    </div>
-    
-    <!-- Active Filters Display -->
-    <div v-if="hasActiveFilters" class="active-filters">
-        <span class="filter-tag" v-if="selectedCompany">
-            ក្រុមហ៊ុន: {{ selectedCompany }}
-            <span @click="selectedCompany = ''">×</span>
-        </span>
-        <span class="filter-tag" v-if="selectedCarModel">
-            ម៉ូដែល: {{ selectedCarModel }}
-            <span @click="selectedCarModel = ''">×</span>
-        </span>
-        <span class="filter-tag" v-if="selectedYear">
-            ឆ្នាំ: {{ selectedYear }}
-            <span @click="selectedYear = ''">×</span>
-        </span>
-    </div>
-</div>
+                    <div class="filter-row">
+                        <select v-model="selectedCompany" @change="applyFilters">
+                            <option value="">All Companies</option>
+                            <option v-for="company in uniqueCompanies" :value="company">{{ company }}</option>
+                        </select>
+                        
+                        <select v-model="selectedCarModel" @change="applyFilters">
+                            <option value="">All Car Models</option>
+                            <option v-for="model in uniqueCarModels" :value="model">{{ model }}</option>
+                        </select>
+                        
+                        <select v-model="selectedYear" @change="applyFilters">
+                            <option value="">All Model Years</option>
+                            <option v-for="year in uniqueYears" :value="year">{{ year }}</option>
+                        </select>
+                        
+                        <button class="clear-filters" @click="clearFilters">
+                            <i class="fas fa-times"></i> Clear Filters
+                        </button>
+                    </div>
+                    
+                    <!-- Active Filters Display -->
+                    <div v-if="hasActiveFilters" class="active-filters">
+                        <span class="filter-tag" v-if="selectedCompany">
+                            Company: {{ selectedCompany }}
+                            <span @click="selectedCompany = ''">×</span>
+                        </span>
+                        <span class="filter-tag" v-if="selectedCarModel">
+                            Model: {{ selectedCarModel }}
+                            <span @click="selectedCarModel = ''">×</span>
+                        </span>
+                        <span class="filter-tag" v-if="selectedYear">
+                            Year: {{ selectedYear }}
+                            <span @click="selectedYear = ''">×</span>
+                        </span>
+                    </div>
+                </div>
+                
                 <div class="inventory-list">
                     <div v-for="item in filteredInventory" :key="item.id" class="inventory-item">
                         <div class="item-top">
                             <div class="item-left">
                                 <div class="item-name">{{ item.partName }}</div>
-                                <div class="item-code">កូដ: {{ item.productCode }} | ក្រុមហ៊ុន: {{ item.company }}</div>
+                                <div class="item-code">Code: {{ item.productCode }} | Company: {{ item.company }}</div>
                                 <div class="detail-row">
                                     <span class="detail-chip">{{ item.carModel }}</span>
                                     <span class="detail-chip year">{{ item.modelYear }}</span>
@@ -198,35 +183,35 @@
                         </div>
                         <div class="price-section">
                             <div class="price-value buy">
-                                <div>ទិញ</div>
+                                <div>Purchase</div>
                                 <div>${{ item.buyPrice.toFixed(2) }}</div>
                             </div>
                             <div class="price-value sell">
-                                <div>លក់</div>
+                                <div>Selling</div>
                                 <div>${{ item.sellPrice.toFixed(2) }}</div>
                             </div>
                             <div class="price-value profit">
-                                <div>ចំណេញ</div>
+                                <div>Profit</div>
                                 <div>${{ (item.sellPrice - item.buyPrice).toFixed(2) }}</div>
                             </div>
                         </div>
                         <div class="actions">
                             <button class="edit" @click="openEdit(item.id)">
-                                <i class="fas fa-edit"></i> កែ
+                                <i class="fas fa-edit"></i> Edit
                             </button>
                             <button class="delete" @click="deleteItem(item.id)">
-                                <i class="fas fa-trash"></i> លុប
+                                <i class="fas fa-trash"></i> Delete
                             </button>
                             <div class="qr-section">
                                 <button class="qr-btn" @click="generateQR(item)">
                                     <i class="fas fa-qrcode"></i> QR
                                 </button>
-                           </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <button class="btn export-btn" @click="exportToCSV">
-                    <i class="fas fa-file-export"></i> នាំចេញជា CSV
+                    <i class="fas fa-file-export"></i> Export to CSV
                 </button>
             </div>
 
@@ -234,467 +219,467 @@
             <div v-if="activeTab === 'stats'" class="tab-content active">
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-label">ទំនិញសរុប</div>
+                        <div class="stat-label">Total Items</div>
                         <div class="stat-value">{{ totalItems }}</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">តម្លៃទិញសរុប</div>
+                        <div class="stat-label">Total Cost</div>
                         <div class="stat-value">${{ totalCost.toFixed(2) }}</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">ប្រាក់ចំណេញសរុប</div>
+                        <div class="stat-label">Total Profit</div>
                         <div class="stat-value">${{ totalProfit.toFixed(2) }}</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">គ្រឿងស្តុកទាប</div>
+                        <div class="stat-label">Low Stock Items</div>
                         <div class="stat-value">{{ lowStockCount }}</div>
                     </div>
                 </div>
             </div>
-        
-           <!-- Bulk Operations Tab -->
-<div v-if="activeTab === 'bulk'" class="tab-content active">
-    <div class="bulk-actions">
-        <h3><i class="fas fa-file-import"></i> នាំចូលគ្រឿងពីឯកសារ CSV</h3>
-        <p>អាចនាំចូលគ្រឿងច្រើនក្នុងពេលតែមួយដោយប្រើឯកសារ CSV</p>
-
-        <label class="file-label" for="csvFile">
-            <i class="fas fa-cloud-upload-alt"></i>
-            <div>ចុចដើម្បីជ្រើសរើសឯកសារ CSV</div>
-            <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">ឬទាញឯកសារទម្លាក់នៅទីនេះ</div>
-        </label>
-        <input type="file" id="csvFile" class="file-input" accept=".csv" @change="handleImport">
-
-        <div class="bulk-buttons">
-            <button class="bulk-btn template-btn" @click="downloadTemplate">
-                <i class="fas fa-file-download"></i> ទាញយកគំរូ
-            </button>
-            <button class="bulk-btn export-btn-bulk" @click="exportAllToCSV">
-                <i class="fas fa-file-export"></i> នាំចេញទាំងអស់
-            </button>
-        </div>
-
-        <div v-if="importResults" class="import-results">
-            <h4><i class="fas fa-clipboard-check"></i> លទ្ធផលនាំចូល</h4>
-            <p class="result-success">បានដាក់ចូលដោយជោគជ័យ: {{ importResults.success }}/{{ importResults.total }}</p>
-            <p v-if="importResults.errors.length" class="result-error">
-                មានកំហុស: {{ importResults.errors.length }}
-            </p>
-            <div v-for="(error, idx) in importResults.errors" :key="idx" class="result-warning">
-                {{ error }}
-            </div>
-            <button @click="importResults = null" style="margin-top: 10px;">
-                <i class="fas fa-times"></i> លុបលទ្ធផល
-            </button>
-        </div>
-    </div>
-    
-    <div class="form-card">
-        <h3><i class="fas fa-info-circle"></i> សេចក្តីណែនាំ</h3>
-        <ol style="margin-left: 20px; margin-top: 10px;">
-            <li>ទាញយកឯកសារគំរូដោយចុចប៊ូតុង "ទាញយកគំរូ"</li>
-            <li>បំពេញព័ត៌មានគ្រឿងទំនិញក្នុងឯកសារ CSV</li>
-            <li>ជ្រើសរើសឯកសារដោយចុចត្រង់ផ្ទៃពណ៌ប្រផេះ</li>
-            <li>គ្រឿងនឹងត្រូវបានដាក់ចូលដោយស្វ័យប្រវត្តិ</li>
-        </ol>
-        <p style="margin-top: 15px; font-style: italic;">
-            <i class="fas fa-lightbulb"></i> ព័ត៌មាន: ប្រសិនបើកូដគ្រឿងមានរួចហើយ វានឹងកែប្រែទិន្នន័យចាស់
-        </p>
-    </div>
-</div>
-
-<!-- Invoice Tab -->
-<div v-if="activeTab === 'invoice'" class="tab-content active">
-    <div class="invoice-controls">
-        <!-- Invoice Header -->
-        <div class="invoice-header">
-    <div>
-        <h3><i class="fas fa-file-invoice-dollar"></i> បង្កើតវិក័យប័ត្រ</h3>
-        <p class="invoice-number-display">លេខវិក័យប័ត្រ: <strong>{{ invoice.invoiceNumber }}</strong></p>
-    </div>
-    <div class="invoice-header-actions">
-                <button class="btn" @click="createNewInvoice">
-                    <i class="fas fa-plus"></i> វិក័យប័ត្រថ្មី
-                </button>
-                <button class="btn" @click="saveInvoiceToHistory" :disabled="invoice.items.length === 0">
-                    <i class="fas fa-save"></i> រក្សាទុក
-                </button>
-            </div>
-        </div>
-
-        <!-- Customer Details -->
-        <div class="customer-details form-card">
-            <h4><i class="fas fa-user"></i> ព័ត៌មានអតិថិជន</h4>
-            <div class="form-row">
-                <div>
-                    <label for="customerName">ឈ្មោះអតិថិជន *</label>
-                    <input type="text" id="customerName" v-model="invoice.customerName" required placeholder="បញ្ចូលឈ្មោះអតិថិជន">
-                </div>
-                <div>
-                    <label for="invoiceDate">កាលបរិច្ឆេទ</label>
-                    <input type="date" id="invoiceDate" v-model="invoice.date">
-                </div>
-            </div>
-            <div class="form-row">
-                <div>
-                    <label for="customerPhone">លេខទូរស័ព្ទ</label>
-                    <input type="tel" id="customerPhone" v-model="invoice.customerPhone" placeholder="លេខទូរស័ព្ទ">
-                </div>
-                <div>
-                    <label for="invoiceNumber">លេខវិក័យប័ត្រ</label>
-                    <input type="text" id="invoiceNumber" :value="invoice.invoiceNumber" readonly>
-                </div>
-            </div>
-        </div>
-
-        <!-- Add Items Section -->
-        <div class="add-items-section form-card">
-            <h4><i class="fas fa-cart-plus"></i> បន្ថែមគ្រឿងក្នុងវិក័យប័ត្រ</h4>
             
-            <!-- Method 1: Search Inventory Items -->
-            <div class="add-method">
-                <div class="method-header">
-                    <h5><i class="fas fa-search"></i> ស្វែងរកគ្រឿងពីស្តុក</h5>
-                </div>
-                <div class="form-row">
-                    <div>
-                        <label for="itemSearch">ស្វែងរកគ្រឿង</label>
-                        <input type="text" id="itemSearch" v-model="itemSearch" 
-                               @input="searchItemsForInvoice" 
-                               placeholder="ស្វែងរកតាមកូដ ឬឈ្មោះគ្រឿង...">
+            <!-- Bulk Operations Tab -->
+            <div v-if="activeTab === 'bulk'" class="tab-content active">
+                <div class="bulk-actions">
+                    <h3><i class="fas fa-file-import"></i> Import Parts from CSV File</h3>
+                    <p>Import multiple parts at once using CSV file</p>
+
+                    <label class="file-label" for="csvFile">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <div>Click to select CSV file</div>
+                        <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">Or drag and drop file here</div>
+                    </label>
+                    <input type="file" id="csvFile" class="file-input" accept=".csv" @change="handleImport">
+
+                    <div class="bulk-buttons">
+                        <button class="bulk-btn template-btn" @click="downloadTemplate">
+                            <i class="fas fa-file-download"></i> Download Template
+                        </button>
+                        <button class="bulk-btn export-btn-bulk" @click="exportAllToCSV">
+                            <i class="fas fa-file-export"></i> Export All
+                        </button>
                     </div>
-                    <div>
-                        <label>បរិមាណ</label>
-                        <input type="number" v-model="selectedInventoryItem.quantity" min="1" value="1">
-                    </div>
-                    <div>
-                        <label>&nbsp;</label>
-                        <button class="btn" @click="addInventoryItem" :disabled="!selectedSearchItem">
-                            <i class="fas fa-plus"></i> បន្ថែមពីស្តុក
+
+                    <div v-if="importResults" class="import-results">
+                        <h4><i class="fas fa-clipboard-check"></i> Import Results</h4>
+                        <p class="result-success">Successfully imported: {{ importResults.success }}/{{ importResults.total }}</p>
+                        <p v-if="importResults.errors.length" class="result-error">
+                            Errors: {{ importResults.errors.length }}
+                        </p>
+                        <div v-for="(error, idx) in importResults.errors" :key="idx" class="result-warning">
+                            {{ error }}
+                        </div>
+                        <button @click="importResults = null" style="margin-top: 10px;">
+                            <i class="fas fa-times"></i> Clear Results
                         </button>
                     </div>
                 </div>
+                
+                <div class="form-card">
+                    <h3><i class="fas fa-info-circle"></i> Instructions</h3>
+                    <ol style="margin-left: 20px; margin-top: 10px;">
+                        <li>Download template file by clicking "Download Template" button</li>
+                        <li>Fill part information in CSV file</li>
+                        <li>Select file by clicking on gray area</li>
+                        <li>Parts will be imported automatically</li>
+                    </ol>
+                    <p style="margin-top: 15px; font-style: italic;">
+                        <i class="fas fa-lightbulb"></i> Note: If part code already exists, it will update old data
+                    </p>
+                </div>
+            </div>
 
-                <!-- Search Results -->
-                <div v-if="searchResults.length > 0" class="search-results">
-                    <div v-for="item in searchResults" :key="item.id" 
-                         class="search-result-item" 
-                         :class="{ selected: selectedSearchItem?.id === item.id }"
-                         @click="selectSearchItem(item)">
-                        <div class="result-info">
-                            <div class="result-name">{{ item.partName }}</div>
-                            <div class="result-details">
-                                <span class="result-code">{{ item.productCode }}</span>
-                                <span class="result-price">${{ item.sellPrice.toFixed(2) }}</span>
-                                <span class="result-stock">ស្តុក: {{ item.quantity }}</span>
+            <!-- Invoice Tab -->
+            <div v-if="activeTab === 'invoice'" class="tab-content active">
+                <div class="invoice-controls">
+                    <!-- Invoice Header -->
+                    <div class="invoice-header">
+                        <div>
+                            <h3><i class="fas fa-file-invoice-dollar"></i> Create Invoice</h3>
+                            <p class="invoice-number-display">Invoice Number: <strong>{{ invoice.invoiceNumber }}</strong></p>
+                        </div>
+                        <div class="invoice-header-actions">
+                            <button class="btn" @click="createNewInvoice">
+                                <i class="fas fa-plus"></i> New Invoice
+                            </button>
+                            <button class="btn" @click="saveInvoiceToHistory" :disabled="invoice.items.length === 0">
+                                <i class="fas fa-save"></i> Save
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Customer Details -->
+                    <div class="customer-details form-card">
+                        <h4><i class="fas fa-user"></i> Customer Information</h4>
+                        <div class="form-row">
+                            <div>
+                                <label for="customerName">Customer Name *</label>
+                                <input type="text" id="customerName" v-model="invoice.customerName" required placeholder="Enter customer name">
+                            </div>
+                            <div>
+                                <label for="invoiceDate">Date</label>
+                                <input type="date" id="invoiceDate" v-model="invoice.date">
                             </div>
                         </div>
-                        <div class="result-action">
-                            <i class="fas fa-check" v-if="selectedSearchItem?.id === item.id"></i>
+                        <div class="form-row">
+                            <div>
+                                <label for="customerPhone">Phone Number</label>
+                                <input type="tel" id="customerPhone" v-model="invoice.customerPhone" placeholder="Phone number">
+                            </div>
+                            <div>
+                                <label for="invoiceNumber">Invoice Number</label>
+                                <input type="text" id="invoiceNumber" :value="invoice.invoiceNumber" readonly>
+                            </div>
                         </div>
+                    </div>
+
+                    <!-- Add Items Section -->
+                    <div class="add-items-section form-card">
+                        <h4><i class="fas fa-cart-plus"></i> Add Items to Invoice</h4>
+                        
+                        <!-- Method 1: Search Inventory Items -->
+                        <div class="add-method">
+                            <div class="method-header">
+                                <h5><i class="fas fa-search"></i> Search Items from Stock</h5>
+                            </div>
+                            <div class="form-row">
+                                <div>
+                                    <label for="itemSearch">Search Items</label>
+                                    <input type="text" id="itemSearch" v-model="itemSearch" 
+                                           @input="searchItemsForInvoice" 
+                                           placeholder="Search by code or part name...">
+                                </div>
+                                <div>
+                                    <label>Quantity</label>
+                                    <input type="number" v-model="selectedInventoryItem.quantity" min="1" value="1">
+                                </div>
+                                <div>
+                                    <label>&nbsp;</label>
+                                    <button class="btn" @click="addInventoryItem" :disabled="!selectedSearchItem">
+                                        <i class="fas fa-plus"></i> Add from Stock
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Search Results -->
+                            <div v-if="searchResults.length > 0" class="search-results">
+                                <div v-for="item in searchResults" :key="item.id" 
+                                     class="search-result-item" 
+                                     :class="{ selected: selectedSearchItem?.id === item.id }"
+                                     @click="selectSearchItem(item)">
+                                    <div class="result-info">
+                                        <div class="result-name">{{ item.partName }}</div>
+                                        <div class="result-details">
+                                            <span class="result-code">{{ item.productCode }}</span>
+                                            <span class="result-price">${{ item.sellPrice.toFixed(2) }}</span>
+                                            <span class="result-stock">Stock: {{ item.quantity }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="result-action">
+                                        <i class="fas fa-check" v-if="selectedSearchItem?.id === item.id"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Method 2: Add Manual Item -->
+                        <div class="add-method">
+                            <div class="method-header">
+                                <h5><i class="fas fa-edit"></i> Add Manual Item</h5>
+                            </div>
+                            <div class="form-row">
+                                <div>
+                                    <label for="manualItemName">Item Name *</label>
+                                    <input type="text" id="manualItemName" v-model="manualItem.name" placeholder="Item name">
+                                </div>
+                                <div>
+                                    <label for="manualItemPrice">Price ($)</label>
+                                    <input type="number" id="manualItemPrice" v-model="manualItem.price" step="0.01" min="0" placeholder="0.00">
+                                </div>
+                                <div>
+                                    <label for="manualItemQuantity">Quantity</label>
+                                    <input type="number" id="manualItemQuantity" v-model="manualItem.quantity" min="1" value="1">
+                                </div>
+                                <div>
+                                    <label>&nbsp;</label>
+                                    <button class="btn" @click="addManualItem" :disabled="!manualItem.name || !manualItem.price">
+                                        <i class="fas fa-plus-circle"></i> Add Manual
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Items List -->
+                    <div v-if="invoice.items.length > 0" class="invoice-items">
+                        <h4><i class="fas fa-list"></i> Items in Invoice ({{ invoice.items.length }})</h4>
+                        <div class="invoice-table">
+                            <div class="invoice-table-header">
+                                <div>No.</div>
+                                <div>Description</div>
+                                <div>Quantity</div>
+                                <div>Unit Price</div>
+                                <div>Total</div>
+                                <div>Actions</div>
+                            </div>
+                            <div v-for="(item, index) in invoice.items" :key="index" class="invoice-table-row">
+                                <div>{{ index + 1 }}</div>
+                                <div>
+                                    <div class="item-desc">{{ item.description }}</div>
+                                    <div v-if="item.code" class="item-code">Code: {{ item.code }}</div>
+                                    <div v-if="item.type" class="item-type">Type: {{ item.type }}</div>
+                                </div>
+                                <div>
+                                    <input type="number" v-model="item.quantity" min="1" 
+                                           @change="updateInvoiceTotal" class="quantity-input">
+                                </div>
+                                <div>
+                                    <input type="number" v-model="item.unitPrice" step="0.01" min="0" 
+                                           @change="updateInvoiceTotal" class="price-input">
+                                </div>
+                                <div class="item-total">${{ (item.quantity * item.unitPrice).toFixed(2) }}</div>
+                                <div>
+                                    <button class="delete-small" @click="removeInvoiceItem(index)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Invoice Totals -->
+                        <div class="invoice-totals">
+                            <div class="total-row">
+                                <span>Subtotal</span>
+                                <span>${{ invoice.subtotal.toFixed(2) }}</span>
+                            </div>
+                            <div class="total-row grand-total">
+                                <span>Grand Total</span>
+                                <span>${{ invoice.grandTotal.toFixed(2) }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Invoice Actions -->
+                        <div class="invoice-actions">
+                            <button class="btn" @click="printInvoice">
+                                <i class="fas fa-print"></i> Print
+                            </button>
+                            <button class="btn" @click="saveInvoiceAsImage">
+                                <i class="fas fa-image"></i> Save as Image
+                            </button>
+                            <button class="btn" @click="saveInvoiceAsPDF">
+                                <i class="fas fa-file-pdf"></i> Save as PDF
+                            </button>
+                            <button class="btn" @click="clearInvoice">
+                                <i class="fas fa-times"></i> Clear Invoice
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- No Items Message -->
+                    <div v-else class="no-items-message">
+                        <i class="fas fa-shopping-cart"></i>
+                        <p>Invoice is empty. Please add items from above!</p>
+                    </div>
+
+                    <!-- Invoice History -->
+                    <div v-if="invoiceHistory.length > 0" class="invoice-history">
+                        <h4><i class="fas fa-history"></i> Invoice History ({{ invoiceHistory.length }})</h4>
+                        <div class="history-list">
+                            <div v-for="(inv, index) in invoiceHistory.slice().reverse()" :key="index" class="history-item">
+                                <div class="history-header">
+                                    <div class="history-customer">
+                                        <strong>{{ inv.customerName || 'Unknown Customer' }}</strong>
+                                        <small>{{ inv.date }}</small>
+                                    </div>
+                                    <div class="history-amount">
+                                        ${{ inv.grandTotal.toFixed(2) }}
+                                        <small>{{ inv.items.length }} items</small>
+                                    </div>
+                                </div>
+                                <div class="history-actions">
+                                    <button @click="viewInvoiceHistory(inv)" class="small-btn view-btn">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                    <button @click="printInvoiceFromHistory(inv)" class="small-btn print-btn">
+                                        <i class="fas fa-print"></i> Print
+                                    </button>
+                                    <button @click="deleteInvoiceHistory(inv.id)" class="small-btn delete-btn">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Invoice Preview (hidden, for printing/saving) -->
+                <div ref="invoicePreview" class="invoice-preview hidden">
+                    <div class="preview-header">
+                        <h2>INVOICE</h2>
+                        <div class="preview-info">
+                            <p><strong>Customer:</strong> {{ invoice.customerName }}</p>
+                            <p><strong>Date:</strong> {{ invoice.date }}</p>
+                            <p><strong>Invoice Number:</strong> {{ invoice.invoiceNumber }}</p>
+                            <p v-if="invoice.customerPhone"><strong>Phone:</strong> {{ invoice.customerPhone }}</p>
+                        </div>
+                    </div>
+                    
+                    <table class="preview-table">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Description</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(item, index) in invoice.items" :key="index">
+                                <td>{{ index + 1 }}</td>
+                                <td>{{ item.description }}{{ item.code ? ' (' + item.code + ')' : '' }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>${{ item.unitPrice.toFixed(2) }}</td>
+                                <td>${{ (item.quantity * item.unitPrice).toFixed(2) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="preview-totals">
+                        <div class="total-row">
+                            <span>Subtotal:</span>
+                            <span>${{ invoice.subtotal.toFixed(2) }}</span>
+                        </div>
+                        <div class="total-row grand">
+                            <span>Grand Total:</span>
+                            <span>${{ invoice.grandTotal.toFixed(2) }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-footer">
+                        <p>Thank you for your purchase!</p>
+                        <p>Please contact us directly if there are any issues with the invoice.</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Method 2: Add Manual Item -->
-            <div class="add-method">
-                <div class="method-header">
-                    <h5><i class="fas fa-edit"></i> បន្ថែមគ្រឿងដោយដៃ</h5>
-                </div>
-                <div class="form-row">
-                    <div>
-                        <label for="manualItemName">ឈ្មោះគ្រឿង *</label>
-                        <input type="text" id="manualItemName" v-model="manualItem.name" placeholder="ឈ្មោះគ្រឿង">
+            <!-- Duplicate Modal -->
+            <div v-if="showDuplicateModal" class="modal active">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2><i class="fas fa-exclamation-triangle"></i> Part Code "{{ duplicateItem?.productCode }}" already exists!</h2>
+                        <button class="close-btn" @click="closeDuplicateModal">&times;</button>
                     </div>
-                    <div>
-                        <label for="manualItemPrice">តម្លៃ ($)</label>
-                        <input type="number" id="manualItemPrice" v-model="manualItem.price" step="0.01" min="0" placeholder="0.00">
-                    </div>
-                    <div>
-                        <label for="manualItemQuantity">បរិមាណ</label>
-                        <input type="number" id="manualItemQuantity" v-model="manualItem.quantity" min="1" value="1">
-                    </div>
-                    <div>
-                        <label>&nbsp;</label>
-                        <button class="btn" @click="addManualItem" :disabled="!manualItem.name || !manualItem.price">
-                            <i class="fas fa-plus-circle"></i> បន្ថែមដោយដៃ
+                    <p>Do you want to add as new item or edit existing item?</p>
+                    <div class="modal-buttons">
+                        <button class="modal-btn-add" @click="addAsNew">
+                            <i class="fas fa-plus"></i> Add New
+                        </button>
+                        <button class="modal-btn-edit" @click="editExisting">
+                            <i class="fas fa-edit"></i> Edit Existing
+                        </button>
+                        <button class="modal-btn-cancel" @click="closeDuplicateModal">
+                            <i class="fas fa-times"></i> Cancel
                         </button>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Invoice Items List -->
-        <div v-if="invoice.items.length > 0" class="invoice-items">
-            <h4><i class="fas fa-list"></i> គ្រឿងក្នុងវិក័យប័ត្រ ({{ invoice.items.length }})</h4>
-            <div class="invoice-table">
-                <div class="invoice-table-header">
-                    <div>ល.រ</div>
-                    <div>ពណ៌នា</div>
-                    <div>បរិមាណ</div>
-                    <div>តម្លៃឯកតា</div>
-                    <div>សរុប</div>
-                    <div>សកម្មភាព</div>
-                </div>
-                <div v-for="(item, index) in invoice.items" :key="index" class="invoice-table-row">
-                    <div>{{ index + 1 }}</div>
-                    <div>
-                        <div class="item-desc">{{ item.description }}</div>
-                        <div v-if="item.code" class="item-code">កូដ: {{ item.code }}</div>
-                        <div v-if="item.type" class="item-type">ប្រភេទ: {{ item.type }}</div>
+            <!-- Edit Modal -->
+            <div v-if="showEditModal" class="modal active">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2><i class="fas fa-edit"></i> Edit Part</h2>
+                        <button class="close-btn" @click="closeEditModal">&times;</button>
                     </div>
-                    <div>
-                        <input type="number" v-model="item.quantity" min="1" 
-                               @change="updateInvoiceTotal" class="quantity-input">
-                    </div>
-                    <div>
-                        <input type="number" v-model="item.unitPrice" step="0.01" min="0" 
-                               @change="updateInvoiceTotal" class="price-input">
-                    </div>
-                    <div class="item-total">${{ (item.quantity * item.unitPrice).toFixed(2) }}</div>
-                    <div>
-                        <button class="delete-small" @click="removeInvoiceItem(index)">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
+                    <form @submit.prevent="updateItem">
+                        <input type="hidden" v-model="editForm.id">
+                        <div class="form-row">
+                            <div>
+                                <label>Company</label>
+                                <input type="text" v-model="editForm.company" required>
+                            </div>
+                            <div>
+                                <label>Part Code</label>
+                                <input type="text" v-model="editForm.productCode" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div>
+                                <label>Part Name</label>
+                                <input type="text" v-model="editForm.partName" required>
+                            </div>
+                            <div>
+                                <label>Car Model</label>
+                                <input type="text" v-model="editForm.carModel" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div>
+                                <label>Model Year</label>
+                                <input type="text" v-model="editForm.modelYear" required>
+                            </div>
+                            <div>
+                                <label>Quantity</label>
+                                <input type="number" v-model="editForm.quantity" min="1" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div>
+                                <label>Purchase Price ($)</label>
+                                <input type="number" v-model="editForm.buyPrice" step="0.01" min="0" required>
+                            </div>
+                            <div>
+                                <label>Selling Price ($)</label>
+                                <input type="number" v-model="editForm.sellPrice" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                        <div class="modal-buttons">
+                            <button type="submit" class="modal-btn-add">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                            <button type="button" class="modal-btn-cancel" @click="closeEditModal">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
-            
-            <!-- Invoice Totals -->
-            <div class="invoice-totals">
-                <div class="total-row">
-                    <span>សរុបរង</span>
-                    <span>${{ invoice.subtotal.toFixed(2) }}</span>
-                </div>
-                <div class="total-row grand-total">
-                    <span>សរុបរួម</span>
-                    <span>${{ invoice.grandTotal.toFixed(2) }}</span>
-                </div>
-            </div>
-            
-            <!-- Invoice Actions -->
-            <div class="invoice-actions">
-                <button class="btn" @click="printInvoice">
-                    <i class="fas fa-print"></i> បោះពុម្ព
-                </button>
-                <button class="btn" @click="saveInvoiceAsImage">
-                    <i class="fas fa-image"></i> រក្សាទុកជារូបភាព
-                </button>
-                <button class="btn" @click="saveInvoiceAsPDF">
-                    <i class="fas fa-file-pdf"></i> រក្សាទុកជា PDF
-                </button>
-                <button class="btn" @click="clearInvoice">
-                    <i class="fas fa-times"></i> លុបវិក័យប័ត្រ
-                </button>
-            </div>
-        </div>
-        
-        <!-- No Items Message -->
-        <div v-else class="no-items-message">
-            <i class="fas fa-shopping-cart"></i>
-            <p>វិក័យប័ត្រទទេ។ សូមបន្ថែមគ្រឿងពីខាងលើ!</p>
-        </div>
 
-        <!-- Invoice History -->
-        <div v-if="invoiceHistory.length > 0" class="invoice-history">
-            <h4><i class="fas fa-history"></i> ប្រវត្តិវិក័យប័ត្រ ({{ invoiceHistory.length }})</h4>
-            <div class="history-list">
-                <div v-for="(inv, index) in invoiceHistory.slice().reverse()" :key="index" class="history-item">
-                    <div class="history-header">
-                        <div class="history-customer">
-                            <strong>{{ inv.customerName || 'មិនស្គាល់អតិថិជន' }}</strong>
-                            <small>{{ inv.date }}</small>
-                        </div>
-                        <div class="history-amount">
-                            ${{ inv.grandTotal.toFixed(2) }}
-                            <small>{{ inv.items.length }} គ្រឿង</small>
-                        </div>
+            <!-- QR Modal -->
+            <div v-if="showQRModal" class="modal active">
+                <div class="modal-content qr-modal">
+                    <div class="modal-header">
+                        <h2><i class="fas fa-qrcode"></i> QR Code for {{ qrItem.partName }}</h2>
+                        <button class="close-btn" @click="closeQRModal">&times;</button>
                     </div>
-                    <div class="history-actions">
-                        <button @click="viewInvoiceHistory(inv)" class="small-btn view-btn">
-                            <i class="fas fa-eye"></i> មើល
-                        </button>
-                        <button @click="printInvoiceFromHistory(inv)" class="small-btn print-btn">
-                            <i class="fas fa-print"></i> បោះពុម្ព
-                        </button>
-                        <button @click="deleteInvoiceHistory(inv.id)" class="small-btn delete-btn">
-                            <i class="fas fa-trash"></i> លុប
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Invoice Preview (hidden, for printing/saving) -->
-    <div ref="invoicePreview" class="invoice-preview hidden">
-        <div class="preview-header">
-            <h2>វិក័យបត្រ</h2>
-            <div class="preview-info">
-                <p><strong>អតិថិជន:</strong> {{ invoice.customerName }}</p>
-                <p><strong>កាលបរិច្ឆេទ:</strong> {{ invoice.date }}</p>
-                <p><strong>លេខវិក័យបត្រ:</strong> {{ invoice.invoiceNumber }}</p>
-                <p v-if="invoice.customerPhone"><strong>ទូរស័ព្ទ:</strong> {{ invoice.customerPhone }}</p>
-            </div>
-        </div>
-        
-        <table class="preview-table">
-            <thead>
-                <tr>
-                    <th>ល.រ</th>
-                    <th>ពណ៌នា</th>
-                    <th>ចំនួន</th>
-                    <th>តម្លៃឯកតា</th>
-                    <th>សរុប</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="(item, index) in invoice.items" :key="index">
-                    <td>{{ index + 1 }}</td>
-                    <td>{{ item.description }}{{ item.code ? ' (' + item.code + ')' : '' }}</td>
-                    <td>{{ item.quantity }}</td>
-                    <td>${{ item.unitPrice.toFixed(2) }}</td>
-                    <td>${{ (item.quantity * item.unitPrice).toFixed(2) }}</td>
-                </tr>
-            </tbody>
-        </table>
-        
-        <div class="preview-totals">
-            <div class="total-row">
-                <span>សរុបរង:</span>
-                <span>${{ invoice.subtotal.toFixed(2) }}</span>
-            </div>
-            <div class="total-row grand">
-                <span>សរុបរួម:</span>
-                <span>${{ invoice.grandTotal.toFixed(2) }}</span>
-            </div>
-        </div>
-        
-        <div class="preview-footer">
-            <p>អរគុណសម្រាប់ការទិញឥវ៉ាន់!</p>
-            <p>សូមទំនាក់ទំនងពួកយើងផ្ទាល់ប្រសិនបើមានបញ្ហាក្នុងវិក័យបត្រ។</p>
-        </div>
-    </div>
-</div>
-
-        <!-- Duplicate Modal -->
-        <div v-if="showDuplicateModal" class="modal active">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2><i class="fas fa-exclamation-triangle"></i> កូដគ្រឿង "{{ duplicateItem?.productCode }}" មានរួចហើយ!</h2>
-                    <button class="close-btn" @click="closeDuplicateModal">&times;</button>
-                </div>
-                <p>តើអ្នកចង់បន្ថែមជាទំនិញថ្មី ឬកែប្រែទំនិញចាស់?</p>
-                <div class="modal-buttons">
-                    <button class="modal-btn-add" @click="addAsNew">
-                        <i class="fas fa-plus"></i> បន្ថែមថ្មី
-                    </button>
-                    <button class="modal-btn-edit" @click="editExisting">
-                        <i class="fas fa-edit"></i> កែប្រែចាស់
-                    </button>
-                    <button class="modal-btn-cancel" @click="closeDuplicateModal">
-                        <i class="fas fa-times"></i> បោះបង់
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Edit Modal -->
-        <div v-if="showEditModal" class="modal active">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2><i class="fas fa-edit"></i> កែប្រែគ្រឿង</h2>
-                    <button class="close-btn" @click="closeEditModal">&times;</button>
-                </div>
-                <form @submit.prevent="updateItem">
-                    <input type="hidden" v-model="editForm.id">
-                    <div class="form-row">
-                        <div>
-                            <label>ក្រុមហ៊ុន</label>
-                            <input type="text" v-model="editForm.company" required>
+                    <div class="qr-container">
+                        <div class="qr-code">
+                            <!-- QR will be generated here -->
                         </div>
-                        <div>
-                            <label>កូដគ្រឿង</label>
-                            <input type="text" v-model="editForm.productCode" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div>
-                            <label>ឈ្មោះគ្រឿង</label>
-                            <input type="text" v-model="editForm.partName" required>
-                        </div>
-                        <div>
-                            <label>ម៉ូដែលឡាន</label>
-                            <input type="text" v-model="editForm.carModel" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div>
-                            <label>ឆ្នាំម៉ូដែល</label>
-                            <input type="text" v-model="editForm.modelYear" required>
-                        </div>
-                        <div>
-                            <label>ចំនួន</label>
-                            <input type="number" v-model="editForm.quantity" min="1" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div>
-                            <label>តម្លៃទិញ ($)</label>
-                            <input type="number" v-model="editForm.buyPrice" step="0.01" min="0" required>
-                        </div>
-                        <div>
-                            <label>តម្លៃលក់ ($)</label>
-                            <input type="number" v-model="editForm.sellPrice" step="0.01" min="0" required>
+                        <div class="qr-info">
+                            <p><strong>Part Name:</strong> {{ qrItem.partName }}</p>
+                            <p><strong>Code:</strong> {{ qrItem.productCode }}</p>
+                            <p><strong>Car:</strong> {{ qrItem.carModel }} ({{ qrItem.modelYear }})</p>
+                            <p><strong>Selling Price:</strong> ${{ qrItem.sellPrice.toFixed(2) }}</p>
+                            <p><strong>Stock:</strong> {{ qrItem.quantity }}</p>
+                            <p><strong>Company:</strong> {{ qrItem.company }}</p>
                         </div>
                     </div>
                     <div class="modal-buttons">
-                        <button type="submit" class="modal-btn-add">
-                            <i class="fas fa-save"></i> រក្សាទុក
+                        <button class="modal-btn-add" @click="downloadQR">
+                            <i class="fas fa-download"></i> Download
                         </button>
-                        <button type="button" class="modal-btn-cancel" @click="closeEditModal">
-                            <i class="fas fa-times"></i> បោះបង់
+                        <button class="modal-btn-edit" @click="printQR">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                        <button class="modal-btn-cancel" @click="closeQRModal">
+                            <i class="fas fa-times"></i> Close
                         </button>
                     </div>
-                </form>
+                </div>
             </div>
-        </div>
-
-        <!-- QR Modal -->
-<div v-if="showQRModal" class="modal active">
-    <div class="modal-content qr-modal">
-        <div class="modal-header">
-            <h2><i class="fas fa-qrcode"></i> QR Code for {{ qrItem.partName }}</h2>
-            <button class="close-btn" @click="closeQRModal">&times;</button>
-        </div>
-        <div class="qr-container">
-            <div class="qr-code">
-                <!-- QR will be generated here -->
-            </div>
-            <div class="qr-info">
-                <p><strong>ឈ្មោះគ្រឿង:</strong> {{ qrItem.partName }}</p>
-                <p><strong>កូដ:</strong> {{ qrItem.productCode }}</p>
-                <p><strong>ឡាន:</strong> {{ qrItem.carModel }} ({{ qrItem.modelYear }})</p>
-                <p><strong>តម្លៃលក់:</strong> ${{ qrItem.sellPrice.toFixed(2) }}</p>
-                <p><strong>ស្តុក:</strong> {{ qrItem.quantity }}</p>
-                <p><strong>ក្រុមហ៊ុន:</strong> {{ qrItem.company }}</p>
-            </div>
-        </div>
-        <div class="modal-buttons">
-            <button class="modal-btn-add" @click="downloadQR">
-                <i class="fas fa-download"></i> ទាញយក
-            </button>
-            <button class="modal-btn-edit" @click="printQR">
-                <i class="fas fa-print"></i> បោះពុម្ព
-            </button>
-            <button class="modal-btn-cancel" @click="closeQRModal">
-                <i class="fas fa-times"></i> បិទ
-            </button>
         </div>
     </div>
-</div>
-
-    </div> <!-- End of #app -->
 
     <script src="script.js"></script>
     <script>
@@ -711,12 +696,11 @@
             });
         }
 
-        // Detect if app is installed
+        // PWA installation prompt
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Show install button if not already installed
             if (!window.matchMedia('(display-mode: standalone)').matches) {
                 setTimeout(() => {
-                    if (confirm('ចង់ដំឡើងកម្មវិធីនេះនៅលើឧបករណ៍របស់អ្នកទេ?')) {
+                    if (confirm('Would you like to install this app on your device?')) {
                         e.prompt();
                     }
                 }, 3000);
