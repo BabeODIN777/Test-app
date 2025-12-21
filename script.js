@@ -801,7 +801,7 @@ const printInvoice = () => {
         <!DOCTYPE html>
         <html>
         <head>
-            <title>វិក័យប័ត្រ INV-${invoice.value.id}</title>
+            <p><strong>លេខវិក័យបត្រ:</strong> INV-{{ invoice.id }}</p>
             <meta charset="UTF-8">
             <style>
                 body { font-family: 'Arial', 'Khmer OS', sans-serif; padding: 20px; color: #000; }
