@@ -622,7 +622,17 @@ const invoiceGrandTotal = computed(() => {
 });
 
 // ==================== INVOICE FUNCTIONS ====================
-
+// Generate sequential invoice number
+const generateInvoiceNumber = () => {
+    const number = invoiceCounter.value.toString().padStart(7, '0');
+    const invoiceNumber = `${invoiceNumberPrefix}${number}`;
+    
+    // Increment counter for next invoice
+    invoiceCounter.value++;
+    localStorage.setItem('invoiceCounter', invoiceCounter.value);
+    
+    return invoiceNumber;
+};
 // Create new invoice
 const createNewInvoice = () => {
     const invoiceNumber = generateInvoiceNumber();
@@ -644,18 +654,6 @@ const createNewInvoice = () => {
     selectedInventoryItem.value = { quantity: 1 };
     manualItem.value = { name: '', price: 0, quantity: 1 };
 };
-// Generate sequential invoice number
-const generateInvoiceNumber = () => {
-    const number = invoiceCounter.value.toString().padStart(7, '0');
-    const invoiceNumber = `${invoiceNumberPrefix}${number}`;
-    
-    // Increment counter for next invoice
-    invoiceCounter.value++;
-    localStorage.setItem('invoiceCounter', invoiceCounter.value);
-    
-    return invoiceNumber;
-};
-
 // Get next invoice number (for display)
 const getNextInvoiceNumber = () => {
     const counter = JSON.parse(localStorage.getItem('invoiceCounter')) || 1;
