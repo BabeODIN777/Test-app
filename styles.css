@@ -35,13 +35,15 @@ body {
     font-family: 'Segoe UI', 'Khmer OS', sans-serif;
     background: var(--bg-gradient);
     color: var(--text-color);
-    padding: 16px;
+    padding: 0;
+    margin: 0;
     transition: background 0.3s, color 0.3s;
 }
 
 .container {
     max-width: 900px;
     margin: auto;
+    padding: 16px;
 }
 
 .header {
@@ -93,10 +95,13 @@ body {
     display: flex;
     gap: 8px;
     margin-bottom: 16px;
+    overflow-x: auto;
+    padding-bottom: 4px;
 }
 
 .tab {
     flex: 1;
+    min-width: 120px;
     padding: 14px;
     border: none;
     border-radius: 10px;
@@ -109,6 +114,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
+    white-space: nowrap;
 }
 
 .tab:hover {
@@ -468,7 +474,7 @@ input:focus {
   transition: transform 0.2s;
   display: flex;
   align-items: center;
-  justify-content: center;
+    justify-content: center;
   gap: 6px;
 }
 
@@ -610,6 +616,7 @@ input:focus {
 .result-warning {
   color: var(--accent-yellow);
 }
+
 .install-btn {
     position: fixed;
     bottom: 20px;
@@ -627,6 +634,11 @@ input:focus {
     gap: 8px;
     transition: transform 0.3s;
 }
+
+.install-btn:hover {
+    transform: translateY(-3px);
+}
+
 /* Filter Section */
 .filter-section {
     background: var(--bg-card);
@@ -730,14 +742,14 @@ input:focus {
     margin-bottom: 10px;
     font-weight: 600;
 }
-.install-btn:hover {
-    transform: translateY(-3px);
-}
+
 /* ==================== INVOICE SYSTEM STYLES ==================== */
 
 /* Invoice Controls */
 .invoice-controls {
     padding: 20px 0;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .invoice-header {
@@ -861,26 +873,29 @@ input:focus {
 .invoice-table {
     background: var(--bg-input);
     border-radius: 8px;
-    overflow: hidden;
+    overflow-x: auto;
     margin-bottom: 20px;
     border: 1px solid var(--border-input);
+    display: block;
 }
 
 .invoice-table-header {
     display: grid;
-    grid-template-columns: 50px 2fr 100px 120px 120px 80px;
+    grid-template-columns: 50px minmax(150px, 2fr) 100px 120px 120px 80px;
     background: var(--accent-green);
     color: var(--text-dark);
     padding: 15px;
     font-weight: bold;
+    min-width: 650px;
 }
 
 .invoice-table-row {
     display: grid;
-    grid-template-columns: 50px 2fr 100px 120px 120px 80px;
+    grid-template-columns: 50px minmax(150px, 2fr) 100px 120px 120px 80px;
     padding: 15px;
     border-bottom: 1px solid var(--border-input);
     align-items: center;
+    min-width: 650px;
 }
 
 .invoice-table-row:last-child {
@@ -890,6 +905,7 @@ input:focus {
 .item-desc {
     font-weight: 600;
     margin-bottom: 4px;
+    word-break: break-word;
 }
 
 .item-code, .item-type {
@@ -1037,6 +1053,7 @@ input:focus {
 .history-customer strong {
     display: block;
     margin-bottom: 4px;
+    word-break: break-word;
 }
 
 .history-customer small {
@@ -1141,6 +1158,7 @@ input:focus {
     border: 1px solid #ddd;
     padding: 10px;
     text-align: left;
+    word-break: break-word;
 }
 
 .preview-table th {
@@ -1162,13 +1180,15 @@ input:focus {
     padding-top: 20px;
 }
 
-/* Responsive */
+/* ==================== RESPONSIVE STYLES ==================== */
 @media (max-width: 768px) {
+    /* Invoice table adjustments */
     .invoice-table-header,
     .invoice-table-row {
-        grid-template-columns: 40px 1fr 80px 100px 100px 60px;
-        font-size: 14px;
+        grid-template-columns: 40px minmax(120px, 1fr) 80px 100px 90px 60px;
+        font-size: 13px;
         padding: 10px;
+        min-width: 550px;
     }
     
     .invoice-header {
@@ -1180,6 +1200,9 @@ input:focus {
     .invoice-header-actions {
         width: 100%;
         justify-content: flex-start;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
     }
     
     .history-header {
@@ -1191,93 +1214,57 @@ input:focus {
     .history-amount {
         text-align: left;
     }
-}/* ==================== IMPROVED INVOICE MOBILE LAYOUT ==================== */
-
-/* Base mobile styles */
-@media (max-width: 768px) {
-    /* Stack table rows vertically on mobile instead of horizontal grid */
-    .invoice-table {
-        display: block;
-        overflow: visible;
-    }
-    
-    .invoice-table-header {
-        display: none; /* Hide header on mobile */
-    }
-    
-    .invoice-table-row {
-        display: flex;
-        flex-direction: column;
-        padding: 15px;
-        margin-bottom: 15px;
-        background: var(--bg-input);
-        border-radius: 8px;
-        border: 1px solid var(--border-input);
-        grid-template-columns: 1fr !important;
-        min-width: 0 !important;
-    }
-    
-    /* Style each "cell" as a row in the card */
-    .invoice-table-row > div {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .invoice-table-row > div:last-child {
-        border-bottom: none;
-    }
-    
-    /* Add labels before each piece of data */
-    .invoice-table-row > div:nth-child(1)::before { content: "No."; font-weight: bold; }
-    .invoice-table-row > div:nth-child(2)::before { content: "Description"; font-weight: bold; }
-    .invoice-table-row > div:nth-child(3)::before { content: "Quantity"; font-weight: bold; }
-    .invoice-table-row > div:nth-child(4)::before { content: "Unit Price"; font-weight: bold; }
-    .invoice-table-row > div:nth-child(5)::before { content: "Total"; font-weight: bold; }
-    .invoice-table-row > div:nth-child(6)::before { content: "Actions"; font-weight: bold; }
-    
-    /* Make inputs full width on mobile */
-    .quantity-input, .price-input {
-        width: 100px;
-        max-width: 100%;
-    }
-    
-    /* Adjust invoice actions for mobile */
-    .invoice-actions {
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-    
-    .invoice-header-actions {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-/* For slightly larger mobile screens (tablets in portrait) */
-@media (min-width: 481px) and (max-width: 768px) {
-    /* Keep horizontal layout but with better spacing */
-    .invoice-table-header,
-    .invoice-table-row {
-        grid-template-columns: 40px minmax(180px, 1fr) 80px 100px 90px 60px !important;
-        font-size: 13px;
-        padding: 10px;
-        min-width: 0;
-    }
     
     .quantity-input, .price-input {
         width: 70px;
+        padding: 6px;
+        font-size: 14px;
+    }
+    
+    /* Tabs scrolling */
+    .tabs {
+        overflow-x: auto;
+        padding-bottom: 8px;
+    }
+    
+    .tab {
+        min-width: 100px;
+        padding: 12px 8px;
+        font-size: 14px;
+    }
+    
+    /* Invoice actions */
+    .invoice-actions {
+        grid-template-columns: 1fr;
     }
 }
 
-/* Ensure everything fits in portrait mode */
-.container {
-    max-width: 100%;
-    overflow-x: hidden;
-    padding: 0 10px;
-}
-
-.invoice-controls {
-    max-width: 100%;
-    overflow-x: hidden;
+@media (max-width: 480px) {
+    .invoice-table-header,
+    .invoice-table-row {
+        grid-template-columns: 30px minmax(100px, 1fr) 70px 90px 80px 50px;
+        font-size: 12px;
+        padding: 8px;
+        min-width: 500px;
+    }
+    
+    .filter-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .clear-filters {
+        width: 100%;
+    }
+    
+    .quantity-input, .price-input {
+        width: 60px;
+        padding: 5px;
+        font-size: 13px;
+    }
+    
+    .tab {
+        min-width: 90px;
+        font-size: 13px;
+        padding: 10px 6px;
+    }
 }
