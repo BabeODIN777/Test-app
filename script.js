@@ -10,8 +10,9 @@ createApp({
         const showEditModal = ref(false);
         const duplicateItem = ref(null);
         const nextId = ref(inventory.value.length ? Math.max(...inventory.value.map(i => i.id)) + 1 : 1);
-const invoiceCounter = ref(JSON.parse(localStorage.getItem('invoiceCounter')) || 1);
-const invoiceNumberPrefix = 'INV-';
+        const invoiceCounter = ref(JSON.parse(localStorage.getItem('invoiceCounter')) || 1);
+        const invoiceNumberPrefix = 'INV-';
+        
         const form = ref({
             company: '',
             productCode: '',
@@ -116,7 +117,7 @@ const invoiceNumberPrefix = 'INV-';
 
         const saveItem = () => {
             if (parseFloat(form.value.sellPrice) < parseFloat(form.value.buyPrice)) {
-                alert('តម្លៃលក់ត្រូវតែធំជាង ឬស្មើតម្លៃទិញ');
+                alert('Selling price must be greater than purchase price');
                 return;
             }
 
@@ -138,7 +139,7 @@ const invoiceNumberPrefix = 'INV-';
             inventory.value.push(newItem);
             saveToStorage();
             resetForm();
-            alert('រក្សាទុកដោយជោគជ័យ!');
+            alert('Saved successfully!');
         };
 
         const addAsNew = () => {
@@ -147,7 +148,7 @@ const invoiceNumberPrefix = 'INV-';
             showDuplicateModal.value = false;
             duplicateItem.value = null;
             resetForm();
-            alert('បានបន្ថែមជាទំនិញថ្មីដោយជោគជ័យ!');
+            alert('Added as new item successfully!');
         };
 
         const editExisting = () => {
@@ -169,7 +170,7 @@ const invoiceNumberPrefix = 'INV-';
 
         const updateItem = () => {
             if (parseFloat(editForm.value.sellPrice) < parseFloat(editForm.value.buyPrice)) {
-                alert('តម្លៃលក់ត្រូវតែធំជាង ឬស្មើតម្លៃទិញ');
+                alert('Selling price must be greater than purchase price');
                 return;
             }
 
@@ -183,19 +184,19 @@ const invoiceNumberPrefix = 'INV-';
                 };
                 saveToStorage();
                 closeEditModal();
-                alert('កែប្រែដោយជោគជ័យ!');
+                alert('Updated successfully!');
             }
         };
 
         const deleteItem = (id) => {
-            if (confirm('តើអ្នកប្រាកដជាចង់លុបគ្រឿងនេះទេ?')) {
+            if (confirm('Are you sure you want to delete this item?')) {
                 inventory.value = inventory.value.filter(item => item.id !== id);
                 saveToStorage();
             }
         };
 
         const exportToCSV = () => {
-            const headers = ['ល.រ', 'ឈ្មោះគ្រឿង', 'ប្រភេទ', 'ម៉ូដែលឡាន', 'ឆ្នាំម៉ូដែល', 'តម្លៃទិញ', 'តម្លៃលក់', 'ចំនួន'];
+            const headers = ['No.', 'Part Name', 'Type', 'Car Model', 'Model Year', 'Purchase Price', 'Selling Price', 'Quantity'];
             const rows = inventory.value.map((item, idx) => [
                 idx + 1,
                 `"${item.partName}"`,
@@ -211,7 +212,7 @@ const invoiceNumberPrefix = 'INV-';
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'krom_krong_lan.csv';
+            a.download = 'auto_parts_inventory.csv';
             a.click();
         };
 
@@ -262,13 +263,12 @@ const invoiceNumberPrefix = 'INV-';
 
         const nextTick = () => new Promise(resolve => setTimeout(resolve, 50));
 
-        // ==================== UPDATED QR CODE FUNCTIONS ====================
+        // ==================== QR CODE FUNCTIONS ====================
         const generateQR = async (item) => {
             qrItem.value = item;
             currentQRData.value = item;
             showQRModal.value = true;
             
-            // Wait for modal to render
             await nextTick();
             
             const qrContainer = document.querySelector('.qr-code');
@@ -277,42 +277,31 @@ const invoiceNumberPrefix = 'INV-';
                 return;
             }
             
-            // Clear previous QR code
             qrContainer.innerHTML = '';
             
-            // Check if QRCode library is available
             if (typeof QRCode === 'undefined') {
                 console.error('QRCode library not loaded!');
-                alert('QR Code library failed to load. Please check the console and refresh.');
+                alert('QR Code library failed to load. Please refresh.');
                 createSimplePlaceholder(qrContainer, item);
                 return;
             }
             
-            // Format data for QR code - keep it simple for scanning
             const qrText = `AUTO PARTS|${item.productCode}|${item.partName}|${item.carModel}|${item.modelYear}|$${item.sellPrice}`;
             
-            // Generate QR code using qrcodejs library
             try {
-                // Create QRCode instance - this automatically generates the QR in the container
                 const qr = new QRCode(qrContainer, {
                     text: qrText,
                     width: 250,
                     height: 250,
                     colorDark: '#000000',
                     colorLight: '#ffffff',
-                    correctLevel: QRCode.CorrectLevel.H // High error correction
+                    correctLevel: QRCode.CorrectLevel.H
                 });
                 
-                // Store the canvas for download/print
                 const canvas = qrContainer.querySelector('canvas');
                 if (canvas) {
                     qrCodeInstance.value = canvas;
-                    console.log('QR code generated successfully!');
-                    
-                    // Test if it's a real QR code
-                    testQRCode(canvas);
                 } else {
-                    console.warn('Canvas not found, using fallback');
                     createSimplePlaceholder(qrContainer, item);
                 }
                 
@@ -322,35 +311,6 @@ const invoiceNumberPrefix = 'INV-';
             }
         };
 
-        // Test function to verify QR code is real
-        const testQRCode = (canvas) => {
-            const ctx = canvas.getContext('2d');
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
-            
-            // Count black pixels
-            let blackPixels = 0;
-            for (let i = 0; i < data.length; i += 4) {
-                if (data[i] < 128 && data[i + 1] < 128 && data[i + 2] < 128) {
-                    blackPixels++;
-                }
-            }
-            
-            const totalPixels = data.length / 4;
-            const blackRatio = (blackPixels / totalPixels) * 100;
-            
-            console.log('QR Code Quality Check:');
-            console.log(`- Total pixels: ${totalPixels}`);
-            console.log(`- Black pixels: ${blackPixels}`);
-            console.log(`- Black pixel ratio: ${blackRatio.toFixed(2)}%`);
-            
-            // A real QR code typically has 20-40% black pixels
-            if (blackRatio < 10) {
-                console.warn('Warning: Low black pixel ratio - QR may not scan well');
-            }
-        };
-
-        // Simple placeholder (only used if QR library fails)
         const createSimplePlaceholder = (container, item) => {
             container.innerHTML = '';
             const canvas = document.createElement('canvas');
@@ -359,27 +319,19 @@ const invoiceNumberPrefix = 'INV-';
             container.appendChild(canvas);
             
             const ctx = canvas.getContext('2d');
-            
-            // White background
             ctx.fillStyle = '#FFFFFF';
             ctx.fillRect(0, 0, 250, 250);
-            
-            // Black border
             ctx.strokeStyle = '#000000';
             ctx.lineWidth = 2;
             ctx.strokeRect(5, 5, 240, 240);
-            
-            // Error message
             ctx.fillStyle = '#FF0000';
             ctx.font = 'bold 18px Arial';
             ctx.textAlign = 'center';
             ctx.fillText('QR CODE ERROR', 125, 120);
-            
             ctx.fillStyle = '#000000';
             ctx.font = '14px Arial';
             ctx.fillText('Library not loaded', 125, 150);
             ctx.fillText('Check console and refresh', 125, 170);
-            
             qrCodeInstance.value = canvas;
         };
 
@@ -431,13 +383,13 @@ const invoiceNumberPrefix = 'INV-';
                         <img src="${qrImageData}" width="200">
                     </div>
                     <div class="info">
-                        <p><strong>ឈ្មោះគ្រឿង:</strong> ${currentQRData.value.partName}</p>
-                        <p><strong>កូដ:</strong> ${currentQRData.value.productCode}</p>
-                        <p><strong>ឡាន:</strong> ${currentQRData.value.carModel}</p>
-                        <p><strong>ឆ្នាំ:</strong> ${currentQRData.value.modelYear}</p>
-                        <p><strong>តម្លៃលក់:</strong> $${currentQRData.value.sellPrice.toFixed(2)}</p>
-                        <p><strong>ស្តុក:</strong> ${currentQRData.value.quantity}</p>
-                        <p><strong>ក្រុមហ៊ុន:</strong> ${currentQRData.value.company}</p>
+                        <p><strong>Part Name:</strong> ${currentQRData.value.partName}</p>
+                        <p><strong>Code:</strong> ${currentQRData.value.productCode}</p>
+                        <p><strong>Car:</strong> ${currentQRData.value.carModel}</p>
+                        <p><strong>Year:</strong> ${currentQRData.value.modelYear}</p>
+                        <p><strong>Price:</strong> $${currentQRData.value.sellPrice.toFixed(2)}</p>
+                        <p><strong>Stock:</strong> ${currentQRData.value.quantity}</p>
+                        <p><strong>Company:</strong> ${currentQRData.value.company}</p>
                     </div>
                     <script>
                         window.onload = function() {
@@ -459,7 +411,6 @@ const invoiceNumberPrefix = 'INV-';
         };
 
         const applyFilters = () => {
-            // Filters are automatically applied via computed property
             console.log('Filters applied');
         };
 
@@ -556,6 +507,285 @@ const invoiceNumberPrefix = 'INV-';
             a.click();
         };
 
+        // ==================== INVOICE SYSTEM ====================
+        const invoice = ref({
+            id: Date.now(),
+            invoiceNumber: '',
+            customerName: '',
+            customerPhone: '',
+            date: new Date().toISOString().split('T')[0],
+            items: [],
+            subtotal: 0,
+            grandTotal: 0
+        });
+
+        const invoiceHistory = ref(JSON.parse(localStorage.getItem('invoiceHistory')) || []);
+        const itemSearch = ref('');
+        const searchResults = ref([]);
+        const selectedSearchItem = ref(null);
+        const selectedInventoryItem = ref({ quantity: 1 });
+        const manualItem = ref({ name: '', price: 0, quantity: 1 });
+
+        // Generate invoice number
+        const generateInvoiceNumber = () => {
+            const number = invoiceCounter.value.toString().padStart(7, '0');
+            const invoiceNumber = `${invoiceNumberPrefix}${number}`;
+            invoiceCounter.value++;
+            localStorage.setItem('invoiceCounter', invoiceCounter.value);
+            return invoiceNumber;
+        };
+
+        // Create new invoice
+        const createNewInvoice = () => {
+            const invoiceNumber = generateInvoiceNumber();
+            
+            invoice.value = {
+                id: Date.now(),
+                invoiceNumber: invoiceNumber,
+                customerName: '',
+                customerPhone: '',
+                date: new Date().toISOString().split('T')[0],
+                items: [],
+                subtotal: 0,
+                grandTotal: 0
+            };
+            
+            itemSearch.value = '';
+            searchResults.value = [];
+            selectedSearchItem.value = null;
+            selectedInventoryItem.value = { quantity: 1 };
+            manualItem.value = { name: '', price: 0, quantity: 1 };
+        };
+
+        // Tab switching function for invoice
+        const switchToInvoiceTab = () => {
+            activeTab.value = 'invoice';
+            createNewInvoice();
+        };
+
+        // Invoice computed properties
+        const invoiceSubtotal = computed(() => {
+            return invoice.value.items.reduce((sum, item) => {
+                return sum + (item.unitPrice * item.quantity);
+            }, 0);
+        });
+
+        const invoiceGrandTotal = computed(() => {
+            return invoiceSubtotal.value;
+        });
+
+        // Get next invoice number
+        const getNextInvoiceNumber = () => {
+            const counter = JSON.parse(localStorage.getItem('invoiceCounter')) || 1;
+            return `${invoiceNumberPrefix}${counter.toString().padStart(7, '0')}`;
+        };
+
+        // Search items for invoice
+        const searchItemsForInvoice = () => {
+            if (!itemSearch.value.trim()) {
+                searchResults.value = [];
+                return;
+            }
+            
+            const query = itemSearch.value.toLowerCase();
+            searchResults.value = inventory.value.filter(item =>
+                item.partName.toLowerCase().includes(query) ||
+                item.productCode.toLowerCase().includes(query) ||
+                item.carModel.toLowerCase().includes(query)
+            ).slice(0, 5);
+        };
+
+        // Select item from search results
+        const selectSearchItem = (item) => {
+            selectedSearchItem.value = item;
+        };
+
+        // Add inventory item to invoice
+        const addInventoryItem = () => {
+            if (!selectedSearchItem.value) {
+                alert('Please select an item from stock!');
+                return;
+            }
+            
+            const item = selectedSearchItem.value;
+            const quantity = selectedInventoryItem.value.quantity || 1;
+            
+            const existingIndex = invoice.value.items.findIndex(i => 
+                i.type === 'inventory' && i.itemId === item.id
+            );
+            
+            if (existingIndex !== -1) {
+                invoice.value.items[existingIndex].quantity += quantity;
+            } else {
+                invoice.value.items.push({
+                    itemId: item.id,
+                    type: 'inventory',
+                    code: item.productCode,
+                    description: item.partName,
+                    unitPrice: item.sellPrice,
+                    quantity: quantity,
+                    carModel: item.carModel
+                });
+            }
+            
+            updateInvoiceTotal();
+            
+            selectedSearchItem.value = null;
+            itemSearch.value = '';
+            searchResults.value = [];
+            selectedInventoryItem.value = { quantity: 1 };
+        };
+
+        // Add manual item to invoice
+        const addManualItem = () => {
+            if (!manualItem.value.name || !manualItem.value.price) {
+                alert('Please fill in item name and price!');
+                return;
+            }
+            
+            const manual = manualItem.value;
+            
+            invoice.value.items.push({
+                type: 'manual',
+                code: null,
+                description: manual.name,
+                unitPrice: parseFloat(manual.price),
+                quantity: parseInt(manual.quantity) || 1
+            });
+            
+            updateInvoiceTotal();
+            
+            manualItem.value = { name: '', price: 0, quantity: 1 };
+        };
+
+        // Remove item from invoice
+        const removeInvoiceItem = (index) => {
+            if (confirm('Are you sure you want to remove this item from the invoice?')) {
+                invoice.value.items.splice(index, 1);
+                updateInvoiceTotal();
+            }
+        };
+
+        // Update invoice totals
+        const updateInvoiceTotal = () => {
+            invoice.value.subtotal = invoiceSubtotal.value;
+            invoice.value.grandTotal = invoiceGrandTotal.value;
+        };
+
+        // Save invoice to history
+        const saveInvoiceToHistory = () => {
+            if (!invoice.value.customerName.trim()) {
+                alert('Please fill in customer name!');
+                return;
+            }
+            
+            if (invoice.value.items.length === 0) {
+                alert('Please add items to the invoice!');
+                return;
+            }
+            
+            updateInvoiceTotal();
+            
+            const invoiceToSave = {
+                ...invoice.value,
+                timestamp: new Date().toISOString(),
+                items: JSON.parse(JSON.stringify(invoice.value.items))
+            };
+            
+            invoiceHistory.value.push(invoiceToSave);
+            localStorage.setItem('invoiceHistory', JSON.stringify(invoiceHistory.value));
+            
+            alert('Invoice saved successfully!');
+            createNewInvoice();
+        };
+
+        // View invoice from history
+        const viewInvoiceHistory = (historyInvoice) => {
+            invoice.value = JSON.parse(JSON.stringify(historyInvoice));
+            invoice.value.id = historyInvoice.id;
+            activeTab.value = 'invoice';
+        };
+
+        // Print invoice
+        const printInvoice = () => {
+            if (!invoice.value.customerName.trim() || invoice.value.items.length === 0) {
+                alert('Please fill in customer information and add items first!');
+                return;
+            }
+            
+            updateInvoiceTotal();
+            
+            const printWindow = window.open('', '_blank');
+            const printContent = document.querySelector('.invoice-preview').innerHTML;
+            
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Invoice ${invoice.value.invoiceNumber}</title>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { font-family: 'Arial', sans-serif; padding: 20px; color: #000; }
+                        .invoice-preview { max-width: 800px; margin: 0 auto; }
+                        .preview-header { border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
+                        .preview-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        .preview-table th, .preview-table td { border: 1px solid #000; padding: 10px; text-align: left; }
+                        .preview-table th { background: #f0f0f0; }
+                        .preview-totals { text-align: right; margin-top: 30px; font-size: 16px; }
+                        .preview-footer { margin-top: 50px; text-align: center; color: #666; }
+                    </style>
+                </head>
+                <body>
+                    ${printContent}
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            setTimeout(() => window.close(), 1000);
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+        };
+
+        // Print invoice from history
+        const printInvoiceFromHistory = (historyInvoice) => {
+            invoice.value = JSON.parse(JSON.stringify(historyInvoice));
+            setTimeout(() => {
+                printInvoice();
+            }, 100);
+        };
+
+        // Delete invoice from history
+        const deleteInvoiceHistory = (invoiceId) => {
+            if (confirm('Are you sure you want to delete this invoice from history?')) {
+                invoiceHistory.value = invoiceHistory.value.filter(inv => inv.id !== invoiceId);
+                localStorage.setItem('invoiceHistory', JSON.stringify(invoiceHistory.value));
+                alert('Invoice deleted successfully!');
+            }
+        };
+
+        // Save invoice as image
+        const saveInvoiceAsImage = () => {
+            alert('To save as image, please use the print function and select "Save as PDF" or "Save as Image"');
+            printInvoice();
+        };
+
+        // Save invoice as PDF
+        const saveInvoiceAsPDF = () => {
+            alert('To save as PDF, please use the print function and select "Save as PDF"');
+            printInvoice();
+        };
+
+        // Clear current invoice
+        const clearInvoice = () => {
+            if (confirm('Are you sure you want to clear the current invoice? All data will be lost.')) {
+                createNewInvoice();
+            }
+        };
+
         onMounted(() => {
             document.body.classList.toggle('light-mode', isLightMode.value);
             
@@ -574,314 +804,26 @@ const invoiceNumberPrefix = 'INV-';
                 quantity: item.quantity || 1
             }));
             saveToStorage();
+            
             // Initialize invoice counter if not set
-       if (!localStorage.getItem('invoiceCounter')) {
-           // If there are existing invoices in history, find the highest number
-           if (invoiceHistory.value.length > 0) {
-               const invoiceNumbers = invoiceHistory.value
-                   .filter(inv => inv.invoiceNumber && inv.invoiceNumber.startsWith(invoiceNumberPrefix))
-                   .map(inv => {
-                       const numStr = inv.invoiceNumber.replace(invoiceNumberPrefix, '');
-                       return parseInt(numStr, 10) || 0;
-                   });
-               
-               const maxNumber = Math.max(...invoiceNumbers, 0);
-               invoiceCounter.value = maxNumber + 1;
-               localStorage.setItem('invoiceCounter', invoiceCounter.value);
-           }
-       }
-        });
-        // ==================== INVOICE SYSTEM STATE ====================
-const invoice = ref({
-    id: Date.now(),
-    invoiceNumber: generateInvoiceNumber(),
-    customerName: '',
-    customerPhone: '',
-    date: new Date().toISOString().split('T')[0],
-    items: [],
-    subtotal: 0,
-    grandTotal: 0
-});
-
-const invoiceHistory = ref(JSON.parse(localStorage.getItem('invoiceHistory')) || []);
-const itemSearch = ref('');
-const searchResults = ref([]);
-const selectedSearchItem = ref(null);
-const selectedInventoryItem = ref({ quantity: 1 });
-const manualItem = ref({ name: '', price: 0, quantity: 1 });
-
-// ==================== INVOICE COMPUTED PROPERTIES ====================
-const invoiceSubtotal = computed(() => {
-    return invoice.value.items.reduce((sum, item) => {
-        return sum + (item.unitPrice * item.quantity);
-    }, 0);
-});
-
-const invoiceGrandTotal = computed(() => {
-    return invoiceSubtotal.value;
-});
-
-// ==================== INVOICE FUNCTIONS ====================
-// Generate sequential invoice number
-const generateInvoiceNumber = () => {
-    const number = invoiceCounter.value.toString().padStart(7, '0');
-    const invoiceNumber = `${invoiceNumberPrefix}${number}`;
-    
-    // Increment counter for next invoice
-    invoiceCounter.value++;
-    localStorage.setItem('invoiceCounter', invoiceCounter.value);
-    
-    return invoiceNumber;
-};
-// Create new invoice
-const createNewInvoice = () => {
-    const invoiceNumber = generateInvoiceNumber();
-    
-    invoice.value = {
-        id: Date.now(),
-        invoiceNumber: invoiceNumber,
-        customerName: '',
-        customerPhone: '',
-        date: new Date().toISOString().split('T')[0],
-        items: [],
-        subtotal: 0,
-        grandTotal: 0
-    };
-    
-    itemSearch.value = '';
-    searchResults.value = [];
-    selectedSearchItem.value = null;
-    selectedInventoryItem.value = { quantity: 1 };
-    manualItem.value = { name: '', price: 0, quantity: 1 };
-};
-// Get next invoice number (for display)
-const getNextInvoiceNumber = () => {
-    const counter = JSON.parse(localStorage.getItem('invoiceCounter')) || 1;
-    return `${invoiceNumberPrefix}${counter.toString().padStart(7, '0')}`;
-};
-// Search inventory items for invoice
-const searchItemsForInvoice = () => {
-    if (!itemSearch.value.trim()) {
-        searchResults.value = [];
-        return;
-    }
-    
-    const query = itemSearch.value.toLowerCase();
-    searchResults.value = inventory.value.filter(item =>
-        item.partName.toLowerCase().includes(query) ||
-        item.productCode.toLowerCase().includes(query) ||
-        item.carModel.toLowerCase().includes(query)
-    ).slice(0, 5);
-};
-
-// Select item from search results
-const selectSearchItem = (item) => {
-    selectedSearchItem.value = item;
-};
-
-// Add inventory item to invoice
-const addInventoryItem = () => {
-    if (!selectedSearchItem.value) {
-        alert('សូមជ្រើសរើសគ្រឿងពីស្តុក!');
-        return;
-    }
-    
-    const item = selectedSearchItem.value;
-    const quantity = selectedInventoryItem.value.quantity || 1;
-    
-    // Check if item already exists in invoice
-    const existingIndex = invoice.value.items.findIndex(i => 
-        i.type === 'inventory' && i.itemId === item.id
-    );
-    
-    if (existingIndex !== -1) {
-        // Update quantity
-        invoice.value.items[existingIndex].quantity += quantity;
-    } else {
-        // Add new item
-        invoice.value.items.push({
-            itemId: item.id,
-            type: 'inventory',
-            code: item.productCode,
-            description: item.partName,
-            unitPrice: item.sellPrice,
-            quantity: quantity,
-            carModel: item.carModel
-        });
-    }
-    
-    // Update totals
-    updateInvoiceTotal();
-    
-    // Reset selection
-    selectedSearchItem.value = null;
-    itemSearch.value = '';
-    searchResults.value = [];
-    selectedInventoryItem.value = { quantity: 1 };
-};
-
-// Add manual item to invoice
-const addManualItem = () => {
-    if (!manualItem.value.name || !manualItem.value.price) {
-        alert('សូមបំពេញឈ្មោះ និងតម្លៃគ្រឿង!');
-        return;
-    }
-    
-    const manual = manualItem.value;
-    
-    invoice.value.items.push({
-        type: 'manual',
-        code: null,
-        description: manual.name,
-        unitPrice: parseFloat(manual.price),
-        quantity: parseInt(manual.quantity) || 1
-    });
-    
-    // Update totals
-    updateInvoiceTotal();
-    
-    // Reset manual item form
-    manualItem.value = { name: '', price: 0, quantity: 1 };
-};
-
-// Remove item from invoice
-const removeInvoiceItem = (index) => {
-    if (confirm('តើអ្នកចង់លុបគ្រឿងនេះពីវិក័យប័ត្រទេ?')) {
-        invoice.value.items.splice(index, 1);
-        updateInvoiceTotal();
-    }
-};
-
-// Update invoice totals
-const updateInvoiceTotal = () => {
-    invoice.value.subtotal = invoiceSubtotal.value;
-    invoice.value.grandTotal = invoiceGrandTotal.value;
-};
-
-// Save invoice to history
-const saveInvoiceToHistory = () => {
-    if (!invoice.value.customerName.trim()) {
-        alert('សូមបំពេញឈ្មោះអតិថិជន!');
-        return;
-    }
-    
-    if (invoice.value.items.length === 0) {
-        alert('សូមបន្ថែមគ្រឿងចូលក្នុងវិក័យប័ត្រ!');
-        return;
-    }
-    
-    // Update totals before saving
-    updateInvoiceTotal();
-    
-    // Create a copy of the current invoice
-    const invoiceToSave = {
-        ...invoice.value,
-        timestamp: new Date().toISOString(),
-        items: JSON.parse(JSON.stringify(invoice.value.items)) // Deep copy
-    };
-    
-    // Add to history
-    invoiceHistory.value.push(invoiceToSave);
-    
-    // Save to localStorage
-    localStorage.setItem('invoiceHistory', JSON.stringify(invoiceHistory.value));
-    
-    alert('វិក័យប័ត្រត្រូវបានរក្សាទុកដោយជោគជ័យ!');
-    
-    // Create new invoice
-    createNewInvoice();
-};
-
-// View invoice from history
-const viewInvoiceHistory = (historyInvoice) => {
-    invoice.value = JSON.parse(JSON.stringify(historyInvoice));
-    invoice.value.id = historyInvoice.id;
-    activeTab.value = 'invoice';
-};
-
-// Print invoice
-const printInvoice = () => {
-    if (!invoice.value.customerName.trim() || invoice.value.items.length === 0) {
-        alert('សូមបំពេញព័ត៌មានអតិថិជន និងបន្ថែមគ្រឿងជាមុន!');
-        return;
-    }
-    
-    updateInvoiceTotal();
-    
-    const printWindow = window.open('', '_blank');
-    const printContent = document.querySelector('.invoice-preview').innerHTML;
-    
-    printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>វិក័យប័ត្រ ${invoice.value.invoiceNumber}</title>
-            <meta charset="UTF-8">
-            <style>
-                body { font-family: 'Arial', 'Khmer OS', sans-serif; padding: 20px; color: #000; }
-                .invoice-preview { max-width: 800px; margin: 0 auto; }
-                .preview-header { border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
-                .preview-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                .preview-table th, .preview-table td { border: 1px solid #000; padding: 10px; text-align: left; }
-                .preview-table th { background: #f0f0f0; }
-                .preview-totals { text-align: right; margin-top: 30px; font-size: 16px; }
-                .preview-footer { margin-top: 50px; text-align: center; color: #666; }
-                @media print {
-                    body { padding: 0; margin: 0; }
-                    .no-print { display: none; }
+            if (!localStorage.getItem('invoiceCounter')) {
+                if (invoiceHistory.value.length > 0) {
+                    const invoiceNumbers = invoiceHistory.value
+                        .filter(inv => inv.invoiceNumber && inv.invoiceNumber.startsWith(invoiceNumberPrefix))
+                        .map(inv => {
+                            const numStr = inv.invoiceNumber.replace(invoiceNumberPrefix, '');
+                            return parseInt(numStr, 10) || 0;
+                        });
+                    
+                    const maxNumber = Math.max(...invoiceNumbers, 0);
+                    invoiceCounter.value = maxNumber + 1;
+                    localStorage.setItem('invoiceCounter', invoiceCounter.value);
                 }
-            </style>
-        </head>
-        <body>
-            ${printContent}
-            <script>
-                window.onload = function() {
-                    window.print();
-                    setTimeout(() => window.close(), 1000);
-                };
-            <\/script>
-        </body>
-        </html>
-    `);
-    
-    printWindow.document.close();
-};
-
-// Print invoice from history
-const printInvoiceFromHistory = (historyInvoice) => {
-    invoice.value = JSON.parse(JSON.stringify(historyInvoice));
-    setTimeout(() => {
-        printInvoice();
-    }, 100);
-};
-
-// Delete invoice from history
-const deleteInvoiceHistory = (invoiceId) => {
-    if (confirm('តើអ្នកពិតជាចង់លុបវិក័យប័ត្រនេះពីប្រវត្តិទេ?')) {
-        invoiceHistory.value = invoiceHistory.value.filter(inv => inv.id !== invoiceId);
-        localStorage.setItem('invoiceHistory', JSON.stringify(invoiceHistory.value));
-        alert('វិក័យប័ត្រត្រូវបានលុបដោយជោគជ័យ!');
-    }
-};
-
-// Save invoice as image
-const saveInvoiceAsImage = () => {
-    alert('ដើម្បីរក្សាទុកជារូបភាព សូមប្រើឧបករណ៍បោះពុម្ព និងជ្រើសរើស "Save as PDF" ឬ "Save as Image"');
-    printInvoice();
-};
-
-// Save invoice as PDF
-const saveInvoiceAsPDF = () => {
-    alert('ដើម្បីរក្សាទុកជា PDF សូមប្រើឧបករណ៍បោះពុម្ព និងជ្រើសរើស "Save as PDF"');
-    printInvoice();
-};
-
-// Clear current invoice
-const clearInvoice = () => {
-    if (confirm('តើអ្នកពិតជាចង់លុបវិក័យប័ត្របច្ចុប្បន្នទេ? ទិន្នន័យនឹងត្រូវបាត់បង់។')) {
-        createNewInvoice();
-    }
-};
+            }
+            
+            // Initialize the first invoice
+            createNewInvoice();
+        });
 
         return {
             inventory,
@@ -931,31 +873,32 @@ const clearInvoice = () => {
             downloadTemplate,
             handleImport,
             exportAllToCSV,
+            switchToInvoiceTab,
             invoice,
             getNextInvoiceNumber,
-    invoiceHistory,
-    itemSearch,
-    searchResults,
-    selectedSearchItem,
-    selectedInventoryItem,
-    manualItem,
-    invoiceSubtotal,
-    invoiceGrandTotal,
-    createNewInvoice,
-    searchItemsForInvoice,
-    selectSearchItem,
-    addInventoryItem,
-    addManualItem,
-    removeInvoiceItem,
-    updateInvoiceTotal,
-    saveInvoiceToHistory,
-    viewInvoiceHistory,
-    printInvoice,
-    printInvoiceFromHistory,
-    deleteInvoiceHistory,
-    saveInvoiceAsImage,
-    saveInvoiceAsPDF,
-    clearInvoice,
+            invoiceHistory,
+            itemSearch,
+            searchResults,
+            selectedSearchItem,
+            selectedInventoryItem,
+            manualItem,
+            invoiceSubtotal,
+            invoiceGrandTotal,
+            createNewInvoice,
+            searchItemsForInvoice,
+            selectSearchItem,
+            addInventoryItem,
+            addManualItem,
+            removeInvoiceItem,
+            updateInvoiceTotal,
+            saveInvoiceToHistory,
+            viewInvoiceHistory,
+            printInvoice,
+            printInvoiceFromHistory,
+            deleteInvoiceHistory,
+            saveInvoiceAsImage,
+            saveInvoiceAsPDF,
+            clearInvoice,
         };
     }
 }).mount('#app');
