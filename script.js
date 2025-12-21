@@ -10,7 +10,8 @@ createApp({
         const showEditModal = ref(false);
         const duplicateItem = ref(null);
         const nextId = ref(inventory.value.length ? Math.max(...inventory.value.map(i => i.id)) + 1 : 1);
-
+const invoiceCounter = ref(JSON.parse(localStorage.getItem('invoiceCounter')) || 1);
+const invoiceNumberPrefix = 'INV-';
         const form = ref({
             company: '',
             productCode: '',
@@ -577,6 +578,7 @@ createApp({
         // ==================== INVOICE SYSTEM STATE ====================
 const invoice = ref({
     id: Date.now(),
+    invoiceNumber: generateInvoiceNumber(),
     customerName: '',
     customerPhone: '',
     date: new Date().toISOString().split('T')[0],
@@ -607,8 +609,11 @@ const invoiceGrandTotal = computed(() => {
 
 // Create new invoice
 const createNewInvoice = () => {
+    const invoiceNumber = generateInvoiceNumber();
+    
     invoice.value = {
         id: Date.now(),
+        invoiceNumber: invoiceNumber,
         customerName: '',
         customerPhone: '',
         date: new Date().toISOString().split('T')[0],
@@ -616,13 +621,30 @@ const createNewInvoice = () => {
         subtotal: 0,
         grandTotal: 0
     };
+    
     itemSearch.value = '';
     searchResults.value = [];
     selectedSearchItem.value = null;
     selectedInventoryItem.value = { quantity: 1 };
     manualItem.value = { name: '', price: 0, quantity: 1 };
 };
+// Generate sequential invoice number
+const generateInvoiceNumber = () => {
+    const number = invoiceCounter.value.toString().padStart(7, '0');
+    const invoiceNumber = `${invoiceNumberPrefix}${number}`;
+    
+    // Increment counter for next invoice
+    invoiceCounter.value++;
+    localStorage.setItem('invoiceCounter', invoiceCounter.value);
+    
+    return invoiceNumber;
+};
 
+// Get next invoice number (for display)
+const getNextInvoiceNumber = () => {
+    const counter = JSON.parse(localStorage.getItem('invoiceCounter')) || 1;
+    return `${invoiceNumberPrefix}${counter.toString().padStart(7, '0')}`;
+};
 // Search inventory items for invoice
 const searchItemsForInvoice = () => {
     if (!itemSearch.value.trim()) {
@@ -850,12 +872,21 @@ const clearInvoice = () => {
 // Initialize invoice on mounted
 onMounted(() => {
     // ... existing mounted code ...
-    
-    // Initialize invoice if none exists
-    if (!invoice.value.id) {
-        createNewInvoice();
+if (!localStorage.getItem('invoiceCounter')) {
+    // If there are existing invoices in history, find the highest number
+    if (invoiceHistory.value.length > 0) {
+        const invoiceNumbers = invoiceHistory.value
+            .filter(inv => inv.invoiceNumber && inv.invoiceNumber.startsWith(invoiceNumberPrefix))
+            .map(inv => {
+                const numStr = inv.invoiceNumber.replace(invoiceNumberPrefix, '');
+                return parseInt(numStr, 10) || 0;
+            });
+        
+        const maxNumber = Math.max(...invoiceNumbers, 0);
+        invoiceCounter.value = maxNumber + 1;
+        localStorage.setItem('invoiceCounter', invoiceCounter.value);
     }
-});
+}
 
         return {
             inventory,
@@ -906,6 +937,7 @@ onMounted(() => {
             handleImport,
             exportAllToCSV,
             invoice,
+            getNextInvoiceNumber,
     invoiceHistory,
     itemSearch,
     searchResults,
