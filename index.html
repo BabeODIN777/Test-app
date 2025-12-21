@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="km">
+<html lang="en"> <!-- Dynamic lang attribute will be set by Vue -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,17 +33,25 @@
 </head>
 <body>
     <div id="app">
-        <!-- Header & Theme Toggle -->
+        <!-- Header with Theme & Language Toggle -->
         <div class="header">
-            <h1><i class="fas fa-car"></i> Auto Parts Management System</h1>
-            <div class="theme-toggle">
-                <label>
-                    <input type="checkbox" v-model="isLightMode" @change="toggleTheme">
-                    <span>{{ isLightMode ? '🌙 Dark Mode' : '☀️ Light Mode' }}</span>
-                </label>
+            <h1><i class="fas fa-car"></i> {{ t('appTitle') }}</h1>
+            <div class="header-controls">
+                <div class="theme-toggle">
+                    <label>
+                        <input type="checkbox" v-model="isLightMode" @change="toggleTheme">
+                        <span>{{ isLightMode ? t('darkMode') : t('lightMode') }}</span>
+                    </label>
+                </div>
+                <div class="language-toggle">
+                    <select v-model="currentLanguage" @change="changeLanguage">
+                        <option value="en">🇺🇸 English</option>
+                        <option value="km">🇰🇭 ខ្មែរ</option>
+                    </select>
+                </div>
             </div>
             <div class="install-btn" v-if="showInstallBtn" @click="installPWA">
-                <i class="fas fa-download"></i> Install App
+                <i class="fas fa-download"></i> {{ t('installApp') }}
             </div>
         </div>
 
@@ -51,19 +59,19 @@
             <!-- Tabs -->
             <div class="tabs">
                 <button class="tab" :class="{ active: activeTab === 'add' }" @click="activeTab = 'add'">
-                    <i class="fas fa-plus"></i> Add Part
+                    <i class="fas fa-plus"></i> {{ t('addPart') }}
                 </button>
                 <button class="tab" :class="{ active: activeTab === 'stock' }" @click="activeTab = 'stock'">
-                    <i class="fas fa-boxes"></i> Stock
+                    <i class="fas fa-boxes"></i> {{ t('stock') }}
                 </button>
                 <button class="tab" :class="{ active: activeTab === 'stats' }" @click="activeTab = 'stats'">
-                    <i class="fas fa-chart-bar"></i> Statistics
+                    <i class="fas fa-chart-bar"></i> {{ t('statistics') }}
                 </button>
                 <button class="tab" :class="{ active: activeTab === 'bulk' }" @click="activeTab = 'bulk'">
-                    <i class="fas fa-upload"></i> Import/Export
+                    <i class="fas fa-upload"></i> {{ t('importExport') }}
                 </button>
                 <button class="tab" :class="{ active: activeTab === 'invoice' }" @click="switchToInvoiceTab">
-                    <i class="fas fa-file-invoice-dollar"></i> Invoice
+                    <i class="fas fa-file-invoice-dollar"></i> {{ t('invoice') }}
                 </button>
             </div>
 
@@ -73,46 +81,46 @@
                     <form @submit.prevent="saveItem">
                         <div class="form-row">
                             <div>
-                                <label for="company"><i class="fas fa-building"></i> Company</label>
-                                <input type="text" id="company" v-model="form.company" required>
+                                <label for="company"><i class="fas fa-building"></i> {{ t('company') }}</label>
+                                <input type="text" id="company" v-model="form.company" :placeholder="t('enterCompany')" required>
                             </div>
                             <div>
-                                <label for="productCode"><i class="fas fa-barcode"></i> Part Code</label>
-                                <input type="text" id="productCode" v-model="form.productCode" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div>
-                                <label for="partName"><i class="fas fa-cog"></i> Part Name</label>
-                                <input type="text" id="partName" v-model="form.partName" required>
-                            </div>
-                            <div>
-                                <label for="carModel"><i class="fas fa-car-side"></i> Car Model</label>
-                                <input type="text" id="carModel" v-model="form.carModel" required>
+                                <label for="productCode"><i class="fas fa-barcode"></i> {{ t('partCode') }}</label>
+                                <input type="text" id="productCode" v-model="form.productCode" :placeholder="t('enterPartCode')" required>
                             </div>
                         </div>
                         <div class="form-row">
                             <div>
-                                <label for="modelYear"><i class="fas fa-calendar-alt"></i> Model Year</label>
-                                <input type="text" id="modelYear" v-model="form.modelYear" required>
+                                <label for="partName"><i class="fas fa-cog"></i> {{ t('partName') }}</label>
+                                <input type="text" id="partName" v-model="form.partName" :placeholder="t('enterPartName')" required>
                             </div>
                             <div>
-                                <label for="quantity"><i class="fas fa-box"></i> Quantity</label>
+                                <label for="carModel"><i class="fas fa-car-side"></i> {{ t('carModel') }}</label>
+                                <input type="text" id="carModel" v-model="form.carModel" :placeholder="t('enterCarModel')" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div>
+                                <label for="modelYear"><i class="fas fa-calendar-alt"></i> {{ t('modelYear') }}</label>
+                                <input type="text" id="modelYear" v-model="form.modelYear" :placeholder="t('enterModelYear')" required>
+                            </div>
+                            <div>
+                                <label for="quantity"><i class="fas fa-box"></i> {{ t('quantity') }}</label>
                                 <input type="number" id="quantity" v-model="form.quantity" min="1" required>
                             </div>
                         </div>
                         <div class="form-row">
                             <div>
-                                <label for="buyPrice"><i class="fas fa-dollar-sign"></i> Purchase Price ($)</label>
+                                <label for="buyPrice"><i class="fas fa-dollar-sign"></i> {{ t('purchasePrice') }} ($)</label>
                                 <input type="number" id="buyPrice" v-model="form.buyPrice" step="0.01" min="0" required>
                             </div>
                             <div>
-                                <label for="sellPrice"><i class="fas fa-tag"></i> Selling Price ($)</label>
+                                <label for="sellPrice"><i class="fas fa-tag"></i> {{ t('sellingPrice') }} ($)</label>
                                 <input type="number" id="sellPrice" v-model="form.sellPrice" step="0.01" min="0" required>
                             </div>
                         </div>
                         <button type="submit" class="btn">
-                            <i class="fas fa-save"></i> Save Part
+                            <i class="fas fa-save"></i> {{ t('savePart') }}
                         </button>
                     </form>
                 </div>
@@ -121,46 +129,50 @@
             <!-- Stock Tab -->
             <div v-if="activeTab === 'stock'" class="tab-content active">
                 <div class="search-box">
-                    <input type="text" v-model="searchQuery" placeholder="Search parts...">
+                    <input type="text" v-model="searchQuery" :placeholder="t('searchParts')">
                 </div>
                 
                 <div class="filter-section">
                     <div class="filter-row">
                         <select v-model="selectedCompany" @change="applyFilters">
-                            <option value="">All Companies</option>
+                            <option value="">{{ t('allCompanies') }}</option>
                             <option v-for="company in uniqueCompanies" :value="company">{{ company }}</option>
                         </select>
                         
                         <select v-model="selectedCarModel" @change="applyFilters">
-                            <option value="">All Car Models</option>
+                            <option value="">{{ t('allCarModels') }}</option>
                             <option v-for="model in uniqueCarModels" :value="model">{{ model }}</option>
                         </select>
                         
                         <select v-model="selectedYear" @change="applyFilters">
-                            <option value="">All Model Years</option>
+                            <option value="">{{ t('allModelYears') }}</option>
                             <option v-for="year in uniqueYears" :value="year">{{ year }}</option>
                         </select>
                         
                         <button class="clear-filters" @click="clearFilters">
-                            <i class="fas fa-times"></i> Clear Filters
+                            <i class="fas fa-times"></i> {{ t('clearFilters') }}
                         </button>
                     </div>
                     
                     <!-- Active Filters Display -->
                     <div v-if="hasActiveFilters" class="active-filters">
                         <span class="filter-tag" v-if="selectedCompany">
-                            Company: {{ selectedCompany }}
+                            {{ t('company') }}: {{ selectedCompany }}
                             <span @click="selectedCompany = ''">×</span>
                         </span>
                         <span class="filter-tag" v-if="selectedCarModel">
-                            Model: {{ selectedCarModel }}
+                            {{ t('model') }}: {{ selectedCarModel }}
                             <span @click="selectedCarModel = ''">×</span>
                         </span>
                         <span class="filter-tag" v-if="selectedYear">
-                            Year: {{ selectedYear }}
+                            {{ t('year') }}: {{ selectedYear }}
                             <span @click="selectedYear = ''">×</span>
                         </span>
                     </div>
+                </div>
+                
+                <div class="inventory-count" v-if="filteredInventory.length > 0">
+                    {{ t('showing') }} {{ filteredCount }} {{ t('of') }} {{ totalItems }} {{ t('items') }}
                 </div>
                 
                 <div class="inventory-list">
@@ -168,7 +180,7 @@
                         <div class="item-top">
                             <div class="item-left">
                                 <div class="item-name">{{ item.partName }}</div>
-                                <div class="item-code">Code: {{ item.productCode }} | Company: {{ item.company }}</div>
+                                <div class="item-code">{{ t('code') }}: {{ item.productCode }} | {{ t('company') }}: {{ item.company }}</div>
                                 <div class="detail-row">
                                     <span class="detail-chip">{{ item.carModel }}</span>
                                     <span class="detail-chip year">{{ item.modelYear }}</span>
@@ -183,24 +195,24 @@
                         </div>
                         <div class="price-section">
                             <div class="price-value buy">
-                                <div>Purchase</div>
+                                <div>{{ t('purchase') }}</div>
                                 <div>${{ item.buyPrice.toFixed(2) }}</div>
                             </div>
                             <div class="price-value sell">
-                                <div>Selling</div>
+                                <div>{{ t('selling') }}</div>
                                 <div>${{ item.sellPrice.toFixed(2) }}</div>
                             </div>
                             <div class="price-value profit">
-                                <div>Profit</div>
+                                <div>{{ t('profit') }}</div>
                                 <div>${{ (item.sellPrice - item.buyPrice).toFixed(2) }}</div>
                             </div>
                         </div>
                         <div class="actions">
                             <button class="edit" @click="openEdit(item.id)">
-                                <i class="fas fa-edit"></i> Edit
+                                <i class="fas fa-edit"></i> {{ t('edit') }}
                             </button>
                             <button class="delete" @click="deleteItem(item.id)">
-                                <i class="fas fa-trash"></i> Delete
+                                <i class="fas fa-trash"></i> {{ t('delete') }}
                             </button>
                             <div class="qr-section">
                                 <button class="qr-btn" @click="generateQR(item)">
@@ -211,7 +223,7 @@
                     </div>
                 </div>
                 <button class="btn export-btn" @click="exportToCSV">
-                    <i class="fas fa-file-export"></i> Export to CSV
+                    <i class="fas fa-file-export"></i> {{ t('exportToCSV') }}
                 </button>
             </div>
 
@@ -219,19 +231,19 @@
             <div v-if="activeTab === 'stats'" class="tab-content active">
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-label">Total Items</div>
+                        <div class="stat-label">{{ t('totalItems') }}</div>
                         <div class="stat-value">{{ totalItems }}</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Total Cost</div>
+                        <div class="stat-label">{{ t('totalCost') }}</div>
                         <div class="stat-value">${{ totalCost.toFixed(2) }}</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Total Profit</div>
+                        <div class="stat-label">{{ t('totalProfit') }}</div>
                         <div class="stat-value">${{ totalProfit.toFixed(2) }}</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Low Stock Items</div>
+                        <div class="stat-label">{{ t('lowStockItems') }}</div>
                         <div class="stat-value">{{ lowStockCount }}</div>
                     </div>
                 </div>
@@ -240,93 +252,93 @@
             <!-- Bulk Operations Tab -->
             <div v-if="activeTab === 'bulk'" class="tab-content active">
                 <div class="bulk-actions">
-                    <h3><i class="fas fa-file-import"></i> Import Parts from CSV File</h3>
-                    <p>Import multiple parts at once using CSV file</p>
+                    <h3><i class="fas fa-file-import"></i> {{ t('importFromCSV') }}</h3>
+                    <p>{{ t('importDescription') }}</p>
 
                     <label class="file-label" for="csvFile">
                         <i class="fas fa-cloud-upload-alt"></i>
-                        <div>Click to select CSV file</div>
-                        <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">Or drag and drop file here</div>
+                        <div>{{ t('clickToSelectCSV') }}</div>
+                        <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">{{ t('orDragAndDrop') }}</div>
                     </label>
                     <input type="file" id="csvFile" class="file-input" accept=".csv" @change="handleImport">
 
                     <div class="bulk-buttons">
                         <button class="bulk-btn template-btn" @click="downloadTemplate">
-                            <i class="fas fa-file-download"></i> Download Template
+                            <i class="fas fa-file-download"></i> {{ t('downloadTemplate') }}
                         </button>
                         <button class="bulk-btn export-btn-bulk" @click="exportAllToCSV">
-                            <i class="fas fa-file-export"></i> Export All
+                            <i class="fas fa-file-export"></i> {{ t('exportAll') }}
                         </button>
                     </div>
 
                     <div v-if="importResults" class="import-results">
-                        <h4><i class="fas fa-clipboard-check"></i> Import Results</h4>
-                        <p class="result-success">Successfully imported: {{ importResults.success }}/{{ importResults.total }}</p>
+                        <h4><i class="fas fa-clipboard-check"></i> {{ t('importResults') }}</h4>
+                        <p class="result-success">{{ t('successfullyImported') }}: {{ importResults.success }}/{{ importResults.total }}</p>
                         <p v-if="importResults.errors.length" class="result-error">
-                            Errors: {{ importResults.errors.length }}
+                            {{ t('errors') }}: {{ importResults.errors.length }}
                         </p>
                         <div v-for="(error, idx) in importResults.errors" :key="idx" class="result-warning">
                             {{ error }}
                         </div>
                         <button @click="importResults = null" style="margin-top: 10px;">
-                            <i class="fas fa-times"></i> Clear Results
+                            <i class="fas fa-times"></i> {{ t('clearResults') }}
                         </button>
                     </div>
                 </div>
                 
                 <div class="form-card">
-                    <h3><i class="fas fa-info-circle"></i> Instructions</h3>
+                    <h3><i class="fas fa-info-circle"></i> {{ t('instructions') }}</h3>
                     <ol style="margin-left: 20px; margin-top: 10px;">
-                        <li>Download template file by clicking "Download Template" button</li>
-                        <li>Fill part information in CSV file</li>
-                        <li>Select file by clicking on gray area</li>
-                        <li>Parts will be imported automatically</li>
+                        <li>{{ t('instruction1') }}</li>
+                        <li>{{ t('instruction2') }}</li>
+                        <li>{{ t('instruction3') }}</li>
+                        <li>{{ t('instruction4') }}</li>
                     </ol>
                     <p style="margin-top: 15px; font-style: italic;">
-                        <i class="fas fa-lightbulb"></i> Note: If part code already exists, it will update old data
+                        <i class="fas fa-lightbulb"></i> {{ t('note') }}
                     </p>
                 </div>
             </div>
 
-            <!-- Invoice Tab -->
+            <!-- Invoice Tab (Content remains mostly the same but with t() function) -->
             <div v-if="activeTab === 'invoice'" class="tab-content active">
                 <div class="invoice-controls">
                     <!-- Invoice Header -->
                     <div class="invoice-header">
                         <div>
-                            <h3><i class="fas fa-file-invoice-dollar"></i> Create Invoice</h3>
-                            <p class="invoice-number-display">Invoice Number: <strong>{{ invoice.invoiceNumber }}</strong></p>
+                            <h3><i class="fas fa-file-invoice-dollar"></i> {{ t('createInvoice') }}</h3>
+                            <p class="invoice-number-display">{{ t('invoiceNumber') }}: <strong>{{ invoice.invoiceNumber }}</strong></p>
                         </div>
                         <div class="invoice-header-actions">
                             <button class="btn" @click="createNewInvoice">
-                                <i class="fas fa-plus"></i> New Invoice
+                                <i class="fas fa-plus"></i> {{ t('newInvoice') }}
                             </button>
                             <button class="btn" @click="saveInvoiceToHistory" :disabled="invoice.items.length === 0">
-                                <i class="fas fa-save"></i> Save
+                                <i class="fas fa-save"></i> {{ t('save') }}
                             </button>
                         </div>
                     </div>
 
                     <!-- Customer Details -->
                     <div class="customer-details form-card">
-                        <h4><i class="fas fa-user"></i> Customer Information</h4>
+                        <h4><i class="fas fa-user"></i> {{ t('customerInformation') }}</h4>
                         <div class="form-row">
                             <div>
-                                <label for="customerName">Customer Name *</label>
-                                <input type="text" id="customerName" v-model="invoice.customerName" required placeholder="Enter customer name">
+                                <label for="customerName">{{ t('customerName') }} *</label>
+                                <input type="text" id="customerName" v-model="invoice.customerName" :placeholder="t('enterCustomerName')" required>
                             </div>
                             <div>
-                                <label for="invoiceDate">Date</label>
+                                <label for="invoiceDate">{{ t('date') }}</label>
                                 <input type="date" id="invoiceDate" v-model="invoice.date">
                             </div>
                         </div>
                         <div class="form-row">
                             <div>
-                                <label for="customerPhone">Phone Number</label>
-                                <input type="tel" id="customerPhone" v-model="invoice.customerPhone" placeholder="Phone number">
+                                <label for="customerPhone">{{ t('phoneNumber') }}</label>
+                                <input type="tel" id="customerPhone" v-model="invoice.customerPhone" :placeholder="t('phonePlaceholder')">
                             </div>
                             <div>
-                                <label for="invoiceNumber">Invoice Number</label>
+                                <label for="invoiceNumber">{{ t('invoiceNumber') }}</label>
                                 <input type="text" id="invoiceNumber" :value="invoice.invoiceNumber" readonly>
                             </div>
                         </div>
@@ -334,28 +346,28 @@
 
                     <!-- Add Items Section -->
                     <div class="add-items-section form-card">
-                        <h4><i class="fas fa-cart-plus"></i> Add Items to Invoice</h4>
+                        <h4><i class="fas fa-cart-plus"></i> {{ t('addItemsToInvoice') }}</h4>
                         
                         <!-- Method 1: Search Inventory Items -->
                         <div class="add-method">
                             <div class="method-header">
-                                <h5><i class="fas fa-search"></i> Search Items from Stock</h5>
+                                <h5><i class="fas fa-search"></i> {{ t('searchFromStock') }}</h5>
                             </div>
                             <div class="form-row">
                                 <div>
-                                    <label for="itemSearch">Search Items</label>
+                                    <label for="itemSearch">{{ t('searchItems') }}</label>
                                     <input type="text" id="itemSearch" v-model="itemSearch" 
                                            @input="searchItemsForInvoice" 
-                                           placeholder="Search by code or part name...">
+                                           :placeholder="t('searchByCodeOrName')">
                                 </div>
                                 <div>
-                                    <label>Quantity</label>
+                                    <label>{{ t('quantity') }}</label>
                                     <input type="number" v-model="selectedInventoryItem.quantity" min="1" value="1">
                                 </div>
                                 <div>
                                     <label>&nbsp;</label>
                                     <button class="btn" @click="addInventoryItem" :disabled="!selectedSearchItem">
-                                        <i class="fas fa-plus"></i> Add from Stock
+                                        <i class="fas fa-plus"></i> {{ t('addFromStock') }}
                                     </button>
                                 </div>
                             </div>
@@ -371,7 +383,7 @@
                                         <div class="result-details">
                                             <span class="result-code">{{ item.productCode }}</span>
                                             <span class="result-price">${{ item.sellPrice.toFixed(2) }}</span>
-                                            <span class="result-stock">Stock: {{ item.quantity }}</span>
+                                            <span class="result-stock">{{ t('stock') }}: {{ item.quantity }}</span>
                                         </div>
                                     </div>
                                     <div class="result-action">
@@ -384,25 +396,25 @@
                         <!-- Method 2: Add Manual Item -->
                         <div class="add-method">
                             <div class="method-header">
-                                <h5><i class="fas fa-edit"></i> Add Manual Item</h5>
+                                <h5><i class="fas fa-edit"></i> {{ t('addManualItem') }}</h5>
                             </div>
                             <div class="form-row">
                                 <div>
-                                    <label for="manualItemName">Item Name *</label>
-                                    <input type="text" id="manualItemName" v-model="manualItem.name" placeholder="Item name">
+                                    <label for="manualItemName">{{ t('itemName') }} *</label>
+                                    <input type="text" id="manualItemName" v-model="manualItem.name" :placeholder="t('itemNamePlaceholder')">
                                 </div>
                                 <div>
-                                    <label for="manualItemPrice">Price ($)</label>
+                                    <label for="manualItemPrice">{{ t('price') }} ($)</label>
                                     <input type="number" id="manualItemPrice" v-model="manualItem.price" step="0.01" min="0" placeholder="0.00">
                                 </div>
                                 <div>
-                                    <label for="manualItemQuantity">Quantity</label>
+                                    <label for="manualItemQuantity">{{ t('quantity') }}</label>
                                     <input type="number" id="manualItemQuantity" v-model="manualItem.quantity" min="1" value="1">
                                 </div>
                                 <div>
                                     <label>&nbsp;</label>
                                     <button class="btn" @click="addManualItem" :disabled="!manualItem.name || !manualItem.price">
-                                        <i class="fas fa-plus-circle"></i> Add Manual
+                                        <i class="fas fa-plus-circle"></i> {{ t('addManual') }}
                                     </button>
                                 </div>
                             </div>
@@ -411,22 +423,22 @@
 
                     <!-- Invoice Items List -->
                     <div v-if="invoice.items.length > 0" class="invoice-items">
-                        <h4><i class="fas fa-list"></i> Items in Invoice ({{ invoice.items.length }})</h4>
+                        <h4><i class="fas fa-list"></i> {{ t('itemsInInvoice') }} ({{ invoice.items.length }})</h4>
                         <div class="invoice-table">
                             <div class="invoice-table-header">
-                                <div>No.</div>
-                                <div>Description</div>
-                                <div>Quantity</div>
-                                <div>Unit Price</div>
-                                <div>Total</div>
-                                <div>Actions</div>
+                                <div>{{ t('no') }}.</div>
+                                <div>{{ t('description') }}</div>
+                                <div>{{ t('quantity') }}</div>
+                                <div>{{ t('unitPrice') }}</div>
+                                <div>{{ t('total') }}</div>
+                                <div>{{ t('actions') }}</div>
                             </div>
                             <div v-for="(item, index) in invoice.items" :key="index" class="invoice-table-row">
                                 <div>{{ index + 1 }}</div>
                                 <div>
                                     <div class="item-desc">{{ item.description }}</div>
-                                    <div v-if="item.code" class="item-code">Code: {{ item.code }}</div>
-                                    <div v-if="item.type" class="item-type">Type: {{ item.type }}</div>
+                                    <div v-if="item.code" class="item-code">{{ t('code') }}: {{ item.code }}</div>
+                                    <div v-if="item.type" class="item-type">{{ t('type') }}: {{ item.type }}</div>
                                 </div>
                                 <div>
                                     <input type="number" v-model="item.quantity" min="1" 
@@ -448,11 +460,11 @@
                         <!-- Invoice Totals -->
                         <div class="invoice-totals">
                             <div class="total-row">
-                                <span>Subtotal</span>
+                                <span>{{ t('subtotal') }}</span>
                                 <span>${{ invoice.subtotal.toFixed(2) }}</span>
                             </div>
                             <div class="total-row grand-total">
-                                <span>Grand Total</span>
+                                <span>{{ t('grandTotal') }}</span>
                                 <span>${{ invoice.grandTotal.toFixed(2) }}</span>
                             </div>
                         </div>
@@ -460,16 +472,16 @@
                         <!-- Invoice Actions -->
                         <div class="invoice-actions">
                             <button class="btn" @click="printInvoice">
-                                <i class="fas fa-print"></i> Print
+                                <i class="fas fa-print"></i> {{ t('print') }}
                             </button>
                             <button class="btn" @click="saveInvoiceAsImage">
-                                <i class="fas fa-image"></i> Save as Image
+                                <i class="fas fa-image"></i> {{ t('saveAsImage') }}
                             </button>
                             <button class="btn" @click="saveInvoiceAsPDF">
-                                <i class="fas fa-file-pdf"></i> Save as PDF
+                                <i class="fas fa-file-pdf"></i> {{ t('saveAsPDF') }}
                             </button>
                             <button class="btn" @click="clearInvoice">
-                                <i class="fas fa-times"></i> Clear Invoice
+                                <i class="fas fa-times"></i> {{ t('clearInvoice') }}
                             </button>
                         </div>
                     </div>
@@ -477,33 +489,33 @@
                     <!-- No Items Message -->
                     <div v-else class="no-items-message">
                         <i class="fas fa-shopping-cart"></i>
-                        <p>Invoice is empty. Please add items from above!</p>
+                        <p>{{ t('invoiceEmpty') }}</p>
                     </div>
 
                     <!-- Invoice History -->
                     <div v-if="invoiceHistory.length > 0" class="invoice-history">
-                        <h4><i class="fas fa-history"></i> Invoice History ({{ invoiceHistory.length }})</h4>
+                        <h4><i class="fas fa-history"></i> {{ t('invoiceHistory') }} ({{ invoiceHistory.length }})</h4>
                         <div class="history-list">
                             <div v-for="(inv, index) in invoiceHistory.slice().reverse()" :key="index" class="history-item">
                                 <div class="history-header">
                                     <div class="history-customer">
-                                        <strong>{{ inv.customerName || 'Unknown Customer' }}</strong>
+                                        <strong>{{ inv.customerName || t('unknownCustomer') }}</strong>
                                         <small>{{ inv.date }}</small>
                                     </div>
                                     <div class="history-amount">
                                         ${{ inv.grandTotal.toFixed(2) }}
-                                        <small>{{ inv.items.length }} items</small>
+                                        <small>{{ inv.items.length }} {{ t('items') }}</small>
                                     </div>
                                 </div>
                                 <div class="history-actions">
                                     <button @click="viewInvoiceHistory(inv)" class="small-btn view-btn">
-                                        <i class="fas fa-eye"></i> View
+                                        <i class="fas fa-eye"></i> {{ t('view') }}
                                     </button>
                                     <button @click="printInvoiceFromHistory(inv)" class="small-btn print-btn">
-                                        <i class="fas fa-print"></i> Print
+                                        <i class="fas fa-print"></i> {{ t('print') }}
                                     </button>
                                     <button @click="deleteInvoiceHistory(inv.id)" class="small-btn delete-btn">
-                                        <i class="fas fa-trash"></i> Delete
+                                        <i class="fas fa-trash"></i> {{ t('delete') }}
                                     </button>
                                 </div>
                             </div>
@@ -511,26 +523,26 @@
                     </div>
                 </div>
                 
-                <!-- Invoice Preview (hidden, for printing/saving) -->
+                <!-- Invoice Preview -->
                 <div ref="invoicePreview" class="invoice-preview hidden">
                     <div class="preview-header">
-                        <h2>INVOICE</h2>
+                        <h2>{{ t('invoice').toUpperCase() }}</h2>
                         <div class="preview-info">
-                            <p><strong>Customer:</strong> {{ invoice.customerName }}</p>
-                            <p><strong>Date:</strong> {{ invoice.date }}</p>
-                            <p><strong>Invoice Number:</strong> {{ invoice.invoiceNumber }}</p>
-                            <p v-if="invoice.customerPhone"><strong>Phone:</strong> {{ invoice.customerPhone }}</p>
+                            <p><strong>{{ t('customer') }}:</strong> {{ invoice.customerName }}</p>
+                            <p><strong>{{ t('date') }}:</strong> {{ invoice.date }}</p>
+                            <p><strong>{{ t('invoiceNumber') }}:</strong> {{ invoice.invoiceNumber }}</p>
+                            <p v-if="invoice.customerPhone"><strong>{{ t('phone') }}:</strong> {{ invoice.customerPhone }}</p>
                         </div>
                     </div>
                     
                     <table class="preview-table">
                         <thead>
                             <tr>
-                                <th>No.</th>
-                                <th>Description</th>
-                                <th>Quantity</th>
-                                <th>Unit Price</th>
-                                <th>Total</th>
+                                <th>{{ t('no') }}.</th>
+                                <th>{{ t('description') }}</th>
+                                <th>{{ t('quantity') }}</th>
+                                <th>{{ t('unitPrice') }}</th>
+                                <th>{{ t('total') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -546,18 +558,18 @@
                     
                     <div class="preview-totals">
                         <div class="total-row">
-                            <span>Subtotal:</span>
+                            <span>{{ t('subtotal') }}:</span>
                             <span>${{ invoice.subtotal.toFixed(2) }}</span>
                         </div>
                         <div class="total-row grand">
-                            <span>Grand Total:</span>
+                            <span>{{ t('grandTotal') }}:</span>
                             <span>${{ invoice.grandTotal.toFixed(2) }}</span>
                         </div>
                     </div>
                     
                     <div class="preview-footer">
-                        <p>Thank you for your purchase!</p>
-                        <p>Please contact us directly if there are any issues with the invoice.</p>
+                        <p>{{ t('thankYou') }}</p>
+                        <p>{{ t('contactUs') }}</p>
                     </div>
                 </div>
             </div>
@@ -566,19 +578,19 @@
             <div v-if="showDuplicateModal" class="modal active">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2><i class="fas fa-exclamation-triangle"></i> Part Code "{{ duplicateItem?.productCode }}" already exists!</h2>
+                        <h2><i class="fas fa-exclamation-triangle"></i> {{ t('duplicateCode') }} "{{ duplicateItem?.productCode }}"</h2>
                         <button class="close-btn" @click="closeDuplicateModal">&times;</button>
                     </div>
-                    <p>Do you want to add as new item or edit existing item?</p>
+                    <p>{{ t('duplicatePrompt') }}</p>
                     <div class="modal-buttons">
                         <button class="modal-btn-add" @click="addAsNew">
-                            <i class="fas fa-plus"></i> Add New
+                            <i class="fas fa-plus"></i> {{ t('addNew') }}
                         </button>
                         <button class="modal-btn-edit" @click="editExisting">
-                            <i class="fas fa-edit"></i> Edit Existing
+                            <i class="fas fa-edit"></i> {{ t('editExisting') }}
                         </button>
                         <button class="modal-btn-cancel" @click="closeDuplicateModal">
-                            <i class="fas fa-times"></i> Cancel
+                            <i class="fas fa-times"></i> {{ t('cancel') }}
                         </button>
                     </div>
                 </div>
@@ -588,57 +600,57 @@
             <div v-if="showEditModal" class="modal active">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2><i class="fas fa-edit"></i> Edit Part</h2>
+                        <h2><i class="fas fa-edit"></i> {{ t('editPart') }}</h2>
                         <button class="close-btn" @click="closeEditModal">&times;</button>
                     </div>
                     <form @submit.prevent="updateItem">
                         <input type="hidden" v-model="editForm.id">
                         <div class="form-row">
                             <div>
-                                <label>Company</label>
+                                <label>{{ t('company') }}</label>
                                 <input type="text" v-model="editForm.company" required>
                             </div>
                             <div>
-                                <label>Part Code</label>
+                                <label>{{ t('partCode') }}</label>
                                 <input type="text" v-model="editForm.productCode" required>
                             </div>
                         </div>
                         <div class="form-row">
                             <div>
-                                <label>Part Name</label>
+                                <label>{{ t('partName') }}</label>
                                 <input type="text" v-model="editForm.partName" required>
                             </div>
                             <div>
-                                <label>Car Model</label>
+                                <label>{{ t('carModel') }}</label>
                                 <input type="text" v-model="editForm.carModel" required>
                             </div>
                         </div>
                         <div class="form-row">
                             <div>
-                                <label>Model Year</label>
+                                <label>{{ t('modelYear') }}</label>
                                 <input type="text" v-model="editForm.modelYear" required>
                             </div>
                             <div>
-                                <label>Quantity</label>
+                                <label>{{ t('quantity') }}</label>
                                 <input type="number" v-model="editForm.quantity" min="1" required>
                             </div>
                         </div>
                         <div class="form-row">
                             <div>
-                                <label>Purchase Price ($)</label>
+                                <label>{{ t('purchasePrice') }} ($)</label>
                                 <input type="number" v-model="editForm.buyPrice" step="0.01" min="0" required>
                             </div>
                             <div>
-                                <label>Selling Price ($)</label>
+                                <label>{{ t('sellingPrice') }} ($)</label>
                                 <input type="number" v-model="editForm.sellPrice" step="0.01" min="0" required>
                             </div>
                         </div>
                         <div class="modal-buttons">
                             <button type="submit" class="modal-btn-add">
-                                <i class="fas fa-save"></i> Save Changes
+                                <i class="fas fa-save"></i> {{ t('saveChanges') }}
                             </button>
                             <button type="button" class="modal-btn-cancel" @click="closeEditModal">
-                                <i class="fas fa-times"></i> Cancel
+                                <i class="fas fa-times"></i> {{ t('cancel') }}
                             </button>
                         </div>
                     </form>
@@ -649,7 +661,7 @@
             <div v-if="showQRModal" class="modal active">
                 <div class="modal-content qr-modal">
                     <div class="modal-header">
-                        <h2><i class="fas fa-qrcode"></i> QR Code for {{ qrItem.partName }}</h2>
+                        <h2><i class="fas fa-qrcode"></i> {{ t('qrCodeFor') }} {{ qrItem.partName }}</h2>
                         <button class="close-btn" @click="closeQRModal">&times;</button>
                     </div>
                     <div class="qr-container">
@@ -657,23 +669,23 @@
                             <!-- QR will be generated here -->
                         </div>
                         <div class="qr-info">
-                            <p><strong>Part Name:</strong> {{ qrItem.partName }}</p>
-                            <p><strong>Code:</strong> {{ qrItem.productCode }}</p>
-                            <p><strong>Car:</strong> {{ qrItem.carModel }} ({{ qrItem.modelYear }})</p>
-                            <p><strong>Selling Price:</strong> ${{ qrItem.sellPrice.toFixed(2) }}</p>
-                            <p><strong>Stock:</strong> {{ qrItem.quantity }}</p>
-                            <p><strong>Company:</strong> {{ qrItem.company }}</p>
+                            <p><strong>{{ t('partName') }}:</strong> {{ qrItem.partName }}</p>
+                            <p><strong>{{ t('code') }}:</strong> {{ qrItem.productCode }}</p>
+                            <p><strong>{{ t('car') }}:</strong> {{ qrItem.carModel }} ({{ qrItem.modelYear }})</p>
+                            <p><strong>{{ t('sellingPrice') }}:</strong> ${{ qrItem.sellPrice.toFixed(2) }}</p>
+                            <p><strong>{{ t('stock') }}:</strong> {{ qrItem.quantity }}</p>
+                            <p><strong>{{ t('company') }}:</strong> {{ qrItem.company }}</p>
                         </div>
                     </div>
                     <div class="modal-buttons">
                         <button class="modal-btn-add" @click="downloadQR">
-                            <i class="fas fa-download"></i> Download
+                            <i class="fas fa-download"></i> {{ t('download') }}
                         </button>
                         <button class="modal-btn-edit" @click="printQR">
-                            <i class="fas fa-print"></i> Print
+                            <i class="fas fa-print"></i> {{ t('print') }}
                         </button>
                         <button class="modal-btn-cancel" @click="closeQRModal">
-                            <i class="fas fa-times"></i> Close
+                            <i class="fas fa-times"></i> {{ t('close') }}
                         </button>
                     </div>
                 </div>
